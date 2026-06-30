@@ -1,72 +1,79 @@
-# crobf · qr.crobf.tech
+# qr.crobf.tech
 
-Free, unlimited QR codes and barcodes generated entirely in your browser. No backend, no login, no pricing.
+Free, unlimited QR codes and barcodes — generated entirely in your browser. No accounts, no tracking, no server.
 
-## Estructura
+qr.crobf.tech is a privacy-first toolkit for creating and reading QR codes and barcodes. Every generation and scan happens locally in the browser. Your data never leaves the device.
+
+## What it does
+
+- **QR Generator** — Turn links, text, phone numbers, emails, or Wi-Fi details into custom QR codes. Change colors, add gradients, pick dot shapes, and place a logo in the center.
+- **QR Scanner** — Read any QR code with the camera, instantly and locally.
+- **Barcode Generator** — Create standard barcodes for products, books, inventory, and packaging. Supports EAN, UPC, CODE128, CODE39, and more.
+- **Barcode Scanner** — Scan barcodes with the camera without uploading anything.
+
+## Highlights
+
+- **Private by design** — No backend, no database, no analytics. Everything runs client-side.
+- **Free and unlimited** — No paywalls, no daily caps, no registration.
+- **Export ready** — Download codes as high-resolution PNG, scalable SVG, or compact JPEG.
+- **Customizable** — Colors, gradients, logos, sizing, and correction levels for QR codes; colors, dimensions, and text for barcodes.
+- **Bilingual** — English and Spanish with proper SEO metadata for each locale.
+
+## Tech stack
+
+| Layer | Tool |
+|-------|------|
+| Monorepo | Turborepo + pnpm workspaces |
+| Language | TypeScript |
+| Frontend | Astro + React |
+| Styling | Tailwind CSS v4 |
+| QR generation | `qr-code-styling` + `jsqr` validation |
+| QR scanning | `html5-qrcode` |
+| Barcode generation | `JsBarcode` |
+| Barcode scanning | `@zxing/library` |
+
+## Project structure
 
 ```
 .
 ├── apps/
-│   └── web/                    # Astro + React frontend
+│   └── web/                    # Astro frontend (qr.crobf.tech)
 ├── packages/
-│   ├── typescript-config/      # Configuración TypeScript compartida
-│   ├── qr-tools/              # QR: node-qrcode + html5-qrcode
-│   └── barcode-tools/         # Barcode: JsBarcode + @zxing/library
+│   ├── qr-tools/               # QR generation, validation, and scanning
+│   ├── barcode-tools/          # Barcode generation and scanning
+│   └── typescript-config/      # Shared TypeScript configuration
 ├── package.json
 ├── pnpm-workspace.yaml
 └── turbo.json
 ```
 
-## Tecnologías
-
-- **Turborepo**: Pipeline de builds con caching
-- **TypeScript**: Configuración compartida, imports sin `.js`
-- **pnpm**: Workspace monorepo
-- **Astro + React**: Frontend estático con componentes interactivos
-- **Vercel**: Adaptador de deployment
-- **Tailwind v4**: CSS-first configuration
-
 ## Scripts
 
 ```bash
-# Instalar dependencias
+# Install dependencies
 pnpm install
 
-# Desarrollo
+# Start the dev server
 pnpm dev
 
-# Build
+# Build the project
 pnpm build
 
-# Type checking
+# Type check
 pnpm check-types
 
 # Lint
 pnpm lint
 ```
 
-## Herramientas disponibles
+## Design
 
-| Herramienta | Package | Librería |
-|-------------|---------|----------|
-| Generador QR | `@crobf/qr-tools` | `node-qrcode` |
-| Lector QR | `@crobf/qr-tools` | `html5-qrcode` |
-| Generador Barcode | `@crobf/barcode-tools` | `JsBarcode` |
-| Lector Barcode | `@crobf/barcode-tools` | `@zxing/library` |
+A quiet, technical aesthetic built around clarity and function:
 
-## Diseño
+- Palette: warm paper `#f8f6f1`, near-black `#1a1917`, terracotta `#c45c3e`, slate green `#3d5a5b`
+- Typography: Space Grotesk for headings, Inter for body text, JetBrains Mono for data
+- Thin borders, generous spacing, and a single animated scan line as the visual signature
 
-Estética **minimalista técnica-vintage**:
+## License
 
-- Paleta: `#f8f6f1` (papel), `#1a1917` (texto), `#c45c3e` (acento terracota), `#3d5a5b` (verde pizarra)
-- Tipografía: Space Grotesk (display), Inter (body), JetBrains Mono (datos)
-- Sin sombras, bordes finos, inputs estilo formulario técnico
-- Firma visual: scan line animada en el hero
-
-## TypeScript
-
-La configuración usa `module: "Preserve"` y `moduleResolution: "bundler"` para permitir imports sin extensión `.js`.
-
-## Tailwind v4
-
-Configuración completamente en CSS (`apps/web/src/styles/global.css`) usando `@import "tailwindcss"` y `@theme`.
+MIT — use it, fork it, improve it.
