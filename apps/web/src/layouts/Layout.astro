@@ -1,0 +1,175 @@
+---
+import '../styles/global.css';
+import ThemeToggle from '../components/ui/ThemeToggle.astro';
+import LanguagePicker from '../components/ui/LanguagePicker.astro';
+import {
+  getLocaleFromPath,
+  getPathWithoutLocale,
+  getTranslations,
+  defaultLocale,
+  locales,
+  localizePath,
+} from '../i18n/utils';
+
+interface Props {
+  title: string;
+  description?: string;
+  image?: string;
+  noIndex?: boolean;
+}
+
+const { title, description, image, noIndex } = Astro.props;
+const locale = getLocaleFromPath(Astro.url.pathname);
+const t = getTranslations(locale);
+const metaDescription = description ?? t.siteTagline;
+function normalizeTrailingSlash(path: string): string {
+  if (path === '/' || path === '') return '/';
+  return path.endsWith('/') ? path : `${path}/`;
+}
+
+const canonicalPath = normalizeTrailingSlash(localizePath(getPathWithoutLocale(Astro.url.pathname), locale));
+const canonicalUrl = new URL(canonicalPath, Astro.site ?? 'https://qr.crobf.tech').toString();
+const ogImage = new URL(image ?? '/og-image.png', Astro.site ?? 'https://qr.crobf.tech').toString();
+const brandTitle = `${title} — ${t.brandName}`;
+---
+
+<!doctype html>
+<html lang={locale} class="scroll-smooth">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content={metaDescription} />
+    <meta name="generator" content={Astro.generator} />
+    <title>{brandTitle}</title>
+
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/favicon.svg" />
+
+    <!-- Canonical + hreflang -->
+    <link rel="canonical" href={canonicalUrl} />
+    {
+      locales.map((loc) => {
+        const path = normalizeTrailingSlash(localizePath(getPathWithoutLocale(Astro.url.pathname), loc));
+        const href = new URL(path, Astro.site ?? 'https://qr.crobf.tech').toString();
+        return <link rel="alternate" hreflang={loc === defaultLocale ? 'x-default' : loc} href={href} />;
+      })
+    }
+
+    {noIndex && <meta name="robots" content="noindex, nofollow" />}
+    {!noIndex && <meta name="robots" content="index, follow" />}
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content={t.brandName} />
+    <meta property="og:title" content={brandTitle} />
+    <meta property="og:description" content={metaDescription} />
+    <meta property="og:url" content={canonicalUrl} />
+    <meta property="og:locale" content={locale === 'es' ? 'es_ES' : 'en_US'} />
+    <meta property="og:image" content={ogImage} />
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={brandTitle} />
+    <meta name="twitter:description" content={metaDescription} />
+    <meta name="twitter:image" content={ogImage} />
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Space+Grotesk:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Theme anti-flash -->
+    <script is:inline>
+      (function () {
+        const stored = typeof localStorage !== 'undefined' ? localStorage.getItem('theme') : null;
+        const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+        if (stored === 'dark' || (stored === null && prefersDark)) {
+          document.documentElement.classList.add('dark');
+        }
+      })();
+    </script>
+
+    <!-- JSON-LD WebSite + WebPage -->
+    <script is:inline type="application/ld+json" set:html={JSON.stringify({
+      '@context': 'https://schema.org',
+      '@graph': [
+        {
+          '@type': 'WebSite',
+          name: t.brandName,
+          url: new URL('/', Astro.site ?? 'https://qr.crobf.tech').toString(),
+          description: t.brandTagline,
+          inLanguage: locale,
+        },
+        {
+          '@type': 'WebPage',
+          '@id': canonicalUrl,
+          url: canonicalUrl,
+          name: brandTitle,
+          description: metaDescription,
+          inLanguage: locale,
+          isPartOf: {
+            '@type': 'WebSite',
+            '@id': new URL('/', Astro.site ?? 'https://qr.crobf.tech').toString(),
+          },
+        },
+      ],
+    })} />
+  </head>
+
+  <body class="min-h-screen bg-bg text-text transition-colors duration-200">
+    <header class="border-b border-border bg-bg transition-colors duration-200">
+      <div class="mx-auto flex max-w-[1400px] items-center justify-between gap-4 px-4 py-4 md:px-6 md:py-5">
+        <a href={locale === defaultLocale ? '/' : `/${locale}/`} class="group flex items-center gap-3 min-w-0">
+          <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-text text-bg transition-colors group-hover:bg-accent">
+            <svg width="22" height="22" viewBox="0 0 32 32" fill="none" aria-hidden="true" focusable="false">
+              <rect width="32" height="32" rx="6" fill="#1a1917" />
+              <path d="M6 7h7v7H6z" fill="#c45c3e" />
+              <path d="M19 7h7v7h-7z" fill="#c45c3e" />
+              <path d="M6 20h4v4H6z" fill="#c45c3e" />
+              <path d="M12 20h4v4h-4z" fill="#c45c3e" />
+              <path d="M19 20h3v4h-3z" fill="#c45c3e" />
+              <path d="M24 20h4v4h-4z" fill="#c45c3e" />
+              <rect x="14" y="9" width="4" height="4" rx="1" fill="#f5f0e9" />
+              <rect x="9" y="14" width="4" height="4" rx="1" fill="#f5f0e9" />
+              <rect x="14" y="14" width="4" height="4" rx="1" fill="#f5f0e9" />
+            </svg>
+          </div>
+          <div class="min-w-0">
+            <div class="font-display text-lg md:text-xl font-semibold tracking-tight truncate">
+              {t.brandName}
+            </div>
+          </div>
+        </a>
+
+        <div class="flex items-center gap-2 md:gap-3 shrink-0">
+          <LanguagePicker />
+          <ThemeToggle />
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <slot />
+    </main>
+
+    <footer class="border-t border-border bg-bg transition-colors duration-200">
+      <div class="mx-auto max-w-[1400px] px-4 py-8 md:px-6">
+        <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <p class="font-mono text-xs text-text-soft">
+            {t.footerBrand}
+          </p>
+          <p class="font-mono text-xs text-text-soft">
+            {t.footerTagline}
+          </p>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>
+
+<style is:global>
+  @import '../styles/global.css';
+</style>

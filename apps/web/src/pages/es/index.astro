@@ -1,0 +1,190 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import ToolCard from '../../components/ui/ToolCard.astro';
+import { getLocaleFromPath, getTranslations } from '../../i18n/utils';
+
+const locale = getLocaleFromPath(Astro.url.pathname);
+const t = getTranslations(locale);
+
+const tools = [
+  {
+    href: 'tools/qr',
+    title: t.qrGeneratorTitle,
+    description: t.qrGeneratorDesc,
+    category: t.catGenerate,
+    icon: `
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="3" width="7" height="7" />
+        <rect x="14" y="3" width="7" height="7" />
+        <rect x="14" y="14" width="7" height="7" />
+        <rect x="3" y="14" width="7" height="7" />
+      </svg>
+    `,
+  },
+  {
+    href: 'tools/qr',
+    title: t.qrScannerTitle,
+    description: t.qrScannerDesc,
+    category: t.catRead,
+    icon: `
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 7V5a2 2 0 0 1 2-2h2" />
+        <path d="M17 3h2a2 2 0 0 1 2 2v2" />
+        <path d="M21 17v2a2 2 0 0 1-2 2h-2" />
+        <path d="M7 21H5a2 2 0 0 1-2-2v-2" />
+        <circle cx="12" cy="12" r="3" />
+      </svg>
+    `,
+  },
+  {
+    href: 'tools/barcode',
+    title: t.barcodeGeneratorTitle,
+    description: t.barcodeGeneratorDesc,
+    category: t.catGenerate,
+    icon: `
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 5v14" />
+        <path d="M8 5v14" />
+        <path d="M12 5v14" />
+        <path d="M17 5v14" />
+        <path d="M21 5v14" />
+      </svg>
+    `,
+  },
+  {
+    href: 'tools/barcode',
+    title: t.barcodeScannerTitle,
+    description: t.barcodeScannerDesc,
+    category: t.catRead,
+    icon: `
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 7V5a2 2 0 0 1 2-2h2" />
+        <path d="M17 3h2a2 2 0 0 1 2 2v2" />
+        <path d="M21 17v2a2 2 0 0 1-2 2h-2" />
+        <path d="M7 21H5a2 2 0 0 1-2-2v-2" />
+        <path d="M7 12h10" />
+      </svg>
+    `,
+  },
+];
+
+const benefits = [
+  {
+    title: t.benefitPrivacyTitle,
+    description: t.benefitPrivacyDesc,
+    icon: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg>`,
+  },
+  {
+    title: t.benefitFreeTitle,
+    description: t.benefitFreeDesc,
+    icon: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M8 12l3 3 5-5"/></svg>`,
+  },
+  {
+    title: t.benefitExportTitle,
+    description: t.benefitExportDesc,
+    icon: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg>`,
+  },
+  {
+    title: t.benefitCustomizeTitle,
+    description: t.benefitCustomizeDesc,
+    icon: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>`,
+  },
+];
+
+const heroCtaQrHref = locale === 'en' ? '/tools/qr' : '/es/tools/qr';
+const heroCtaBarcodeHref = locale === 'en' ? '/tools/barcode' : '/es/tools/barcode';
+---
+
+<Layout title={t.siteTitle} description={t.siteTagline}>
+  <section class="relative overflow-hidden border-b border-border">
+    <div class="mx-auto max-w-[1400px] px-4 py-14 md:px-6 md:py-20 lg:py-24">
+      <div class="relative z-10 max-w-2xl">
+        <p class="mb-4 font-mono text-xs uppercase tracking-[0.2em] text-accent md:mb-6">
+          {t.heroEyebrow}
+        </p>
+        <h1 class="font-display text-[clamp(2rem,6vw,3.75rem)] font-semibold leading-[1.1] tracking-tight text-text">
+          {t.heroTitle1}
+          <span class="block text-text-soft">{t.heroTitle2}</span>
+        </h1>
+        <p class="mt-5 max-w-xl text-base leading-relaxed text-text-soft md:text-lg">
+          {t.heroDescription}
+        </p>
+
+        <div class="mt-7 flex flex-wrap items-center gap-3">
+          <a
+            href={heroCtaQrHref}
+            class="inline-flex items-center gap-2 border border-accent bg-accent px-5 py-3 font-mono text-sm font-medium text-white transition-colors hover:bg-accent/90"
+          >
+            {t.heroCtaQr}
+          </a>
+          <a
+            href={heroCtaBarcodeHref}
+            class="inline-flex items-center gap-2 border border-border bg-surface px-5 py-3 font-mono text-sm font-medium text-text transition-colors hover:border-accent hover:text-accent"
+          >
+            {t.heroCtaBarcode}
+          </a>
+        </div>
+      </div>
+
+      <!-- Scan line signature -->
+      <div class="pointer-events-none absolute left-0 right-0 top-0 h-full overflow-hidden opacity-20">
+        <div class="scan-line absolute left-0 right-0 h-px bg-accent"></div>
+      </div>
+    </div>
+
+    <style>
+      .scan-line {
+        animation: scan 4s ease-in-out infinite;
+        box-shadow: 0 0 8px rgba(196, 92, 62, 0.6);
+      }
+
+      @keyframes scan {
+        0%, 100% {
+          top: 0%;
+        }
+        50% {
+          top: 100%;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .scan-line {
+          animation: none;
+          top: 50%;
+        }
+      }
+    </style>
+  </section>
+
+  <section class="mx-auto max-w-[1400px] px-4 py-12 md:px-6 md:py-16">
+    <div class="mb-8 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between md:mb-10">
+      <div>
+        <h2 class="font-display text-2xl font-medium text-text md:text-3xl">{t.directoryTitle}</h2>
+        <p class="mt-1 max-w-2xl text-sm leading-relaxed text-text-soft md:text-base">
+          {t.directoryDescription}
+        </p>
+      </div>
+      <span class="font-mono text-xs text-text-soft">{tools.length} {t.toolsAvailable}</span>
+    </div>
+
+    <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      {tools.map((tool) => (
+        <ToolCard {...tool} />
+      ))}
+    </div>
+  </section>
+
+  <section class="border-t border-border bg-surface/50">
+    <div class="mx-auto max-w-[1400px] px-4 py-12 md:px-6 md:py-16">
+      <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        {benefits.map((benefit) => (
+          <div class="flex flex-col gap-3 border border-border bg-bg p-5">
+            <div class="text-accent" set:html={benefit.icon} />
+            <h3 class="font-display text-base font-medium text-text">{benefit.title}</h3>
+            <p class="text-sm leading-relaxed text-text-soft">{benefit.description}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+</Layout>

@@ -1,0 +1,16 @@
+{
+  "extends": "../../packages/typescript-config/compiled.json",
+  "compilerOptions": {
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "composite": true
+  },
+  "include": ["src/**/*"],
+  "exclude": ["dist", "node_modules"],
+  "compilerOptions": {
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "composite": true,
+    "typeRoots": ["./node_modules/@types", "./src/types"]
+  }
+}

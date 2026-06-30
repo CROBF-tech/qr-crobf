@@ -1,0 +1,25 @@
+{
+  "name": "@crobf/barcode-tools",
+  "version": "0.0.1",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "check-types": "tsc --noEmit"
+  },
+  "dependencies": {
+    "jsbarcode": "^3.11.5",
+    "@zxing/library": "^0.21.0"
+  },
+  "devDependencies": {
+    "@types/jsbarcode": "^3.11.4",
+    "typescript": "^5.3.0"
+  }
+}

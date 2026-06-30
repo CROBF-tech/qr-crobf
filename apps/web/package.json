@@ -1,0 +1,31 @@
+{
+  "name": "web",
+  "type": "module",
+  "version": "0.0.1",
+  "scripts": {
+    "dev": "astro dev",
+    "start": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro",
+    "check-types": "astro check"
+  },
+  "dependencies": {
+    "@astrojs/react": "^4.0.0",
+    "@astrojs/vercel": "^8.0.0",
+    "@crobf/barcode-tools": "workspace:*",
+    "@crobf/qr-tools": "workspace:*",
+    "@tailwindcss/vite": "^4.3.2",
+    "@types/react": "^18.3.0",
+    "@types/react-dom": "^18.3.0",
+    "astro": "^5.0.0",
+    "react": "^18.3.0",
+    "react-dom": "^18.3.0"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.9",
+    "@repo/typescript-config": "workspace:*",
+    "tailwindcss": "^4.3.2",
+    "typescript": "^5.3.0"
+  }
+}

@@ -1,0 +1,114 @@
+---
+export interface Props {
+  class?: string;
+}
+
+const { class: className = '' } = Astro.props;
+const currentLang = Astro.currentLocale ?? 'en';
+const pathname = Astro.url.pathname;
+const supported = [
+  { code: 'en', label: 'English' },
+  { code: 'es', label: 'Español' },
+];
+---
+
+<div class={`relative ${className}`} data-path={pathname}>
+  <button
+    type="button"
+    id="language-toggle"
+    aria-expanded="false"
+    aria-controls="language-menu"
+    class="inline-flex items-center gap-2 border border-border px-3 py-2 font-mono text-xs uppercase tracking-wider text-text-soft transition-colors hover:border-accent hover:text-accent"
+  >
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="10" />
+      <path d="M2 12h20" />
+      <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+    </svg>
+    <span id="language-current">{supported.find((l) => l.code === currentLang)?.label ?? 'English'}</span>
+  </button>
+
+  <div
+    id="language-menu"
+    role="menu"
+    aria-labelledby="language-toggle"
+    class="pointer-events-none absolute right-0 top-full z-50 mt-2 min-w-[10rem] origin-top-right scale-95 border border-border bg-surface opacity-0 shadow-sm transition-all"
+  >
+    {supported.map((lang) => (
+      <a
+        href={lang.code === 'en' ? '/' : `/${lang.code}/`}
+        role="menuitem"
+        data-lang={lang.code}
+        class={`block px-4 py-3 text-sm transition-colors hover:bg-bg ${lang.code === currentLang ? 'text-accent' : 'text-text'}`}
+      >
+        {lang.label}
+      </a>
+    ))}
+  </div>
+</div>
+
+<script is:inline>
+  (function () {
+    function init() {
+      const wrapper = document.querySelector('[data-path]');
+      const toggle = document.getElementById('language-toggle');
+      const menu = document.getElementById('language-menu');
+      if (!toggle || !menu) return;
+
+      const currentPath = wrapper?.getAttribute('data-path') || window.location.pathname;
+      const pathWithoutLocale = (() => {
+        const firstSegment = currentPath.split('/')[1];
+        const locales = ['en', 'es'];
+        if (locales.includes(firstSegment)) {
+          return currentPath.replace(new RegExp('^/' + firstSegment), '') || '/';
+        }
+        return currentPath;
+      })();
+
+      function open() {
+        menu.classList.remove('pointer-events-none', 'scale-95', 'opacity-0');
+        toggle.setAttribute('aria-expanded', 'true');
+      }
+
+      function close() {
+        menu.classList.add('pointer-events-none', 'scale-95', 'opacity-0');
+        toggle.setAttribute('aria-expanded', 'false');
+      }
+
+      toggle.addEventListener('click', () => {
+        const isOpen = toggle.getAttribute('aria-expanded') === 'true';
+        isOpen ? close() : open();
+      });
+
+      document.addEventListener('click', (e) => {
+        if (!toggle.contains(e.target) && !menu.contains(e.target)) {
+          close();
+        }
+      });
+
+      menu.querySelectorAll('a[data-lang]').forEach((link) => {
+        const lang = link.getAttribute('data-lang');
+        if (!lang) return;
+
+        const targetPath = lang === 'en'
+          ? pathWithoutLocale
+          : `/${lang}${pathWithoutLocale === '/' ? '' : pathWithoutLocale}`;
+        link.setAttribute('href', targetPath.endsWith('/') ? targetPath : targetPath || '/');
+
+          link.addEventListener('click', (e) => {
+          e.preventDefault();
+          try {
+            localStorage.setItem('preferred-language', lang);
+          } catch {}
+          window.location.href = targetPath.endsWith('/') ? targetPath : targetPath || '/';
+        });
+      });
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', init);
+    } else {
+      init();
+    }
+  })();
+</script>
