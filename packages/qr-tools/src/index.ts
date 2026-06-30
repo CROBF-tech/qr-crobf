@@ -1,6 +1,7 @@
 export {
   createQRCode,
   generateQRCodeDataUrl,
+  renderQRCodeToDataUrl,
   validateQRCode,
   getQRCodeBlob,
   downloadQRCode,

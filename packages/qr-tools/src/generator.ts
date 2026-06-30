@@ -49,6 +49,8 @@ const DEFAULT_OPTIONS: QRGeneratorOptions = {
   errorCorrectionLevel: 'Q',
   type: 'canvas',
   dots: { color: '#1a1917', type: 'square' },
+  cornersSquare: { color: '#1a1917', type: 'square' },
+  cornersDot: { color: '#1a1917', type: 'square' },
   background: { color: '#f8f6f1' },
 };
 
@@ -103,11 +105,11 @@ export function buildQRCodeStylingOptions(options: QRGeneratorOptions): Options 
     width: merged.width,
     height: merged.height,
     type: merged.type,
-    data: merged.data || ' ',
+    data: merged.data ?? '',
     margin: merged.margin,
     qrOptions: {
       errorCorrectionLevel: merged.errorCorrectionLevel,
-      typeNumber: 0 as TypeNumber,
+      typeNumber: '0' as unknown as TypeNumber,
     },
     dotsOptions,
     cornersSquareOptions,
@@ -126,7 +128,7 @@ export async function generateQRCodeDataUrl(
   text: string,
   options: QRGeneratorOptions = {}
 ): Promise<{ dataUrl: string; validation: QRValidationResult }> {
-  const merged = { ...DEFAULT_OPTIONS, ...options, data: text || ' ' };
+  const merged = { ...DEFAULT_OPTIONS, ...options, data: text };
   const qr = createQRCode(merged);
 
   const blob = (await qr.getRawData('png')) as Blob | null;
@@ -138,6 +140,15 @@ export async function generateQRCodeDataUrl(
   return { dataUrl, validation };
 }
 
+export async function renderQRCodeToDataUrl(
+  options: QRGeneratorOptions
+): Promise<string | null> {
+  const qr = createQRCode(options);
+  const blob = (await qr.getRawData('png')) as Blob | null;
+  if (!blob) return null;
+  return blobToDataURL(blob);
+}
+
 export async function validateQRCode(
   qr: QRCodeStyling,
   expectedData?: string
@@ -146,8 +157,7 @@ export async function validateQRCode(
     const blob = (await qr.getRawData('png')) as Blob | null;
     if (!blob) return { readable: false, warning: 'Could not render QR code.' };
 
-    const bitmap = await blobToImageBitmap(blob);
-    const { data, width, height } = bitmapToImageData(bitmap);
+    const { data, width, height } = await blobToImageData(blob);
     const code = jsQR(data, width, height);
 
     if (!code) {
@@ -218,16 +228,28 @@ function blobToDataURL(blob: Blob): Promise<string> {
   });
 }
 
-function blobToImageBitmap(blob: Blob): Promise<ImageBitmap> {
-  return createImageBitmap(blob);
-}
-
-function bitmapToImageData(bitmap: ImageBitmap): ImageData {
-  const canvas = document.createElement('canvas');
-  canvas.width = bitmap.width;
-  canvas.height = bitmap.height;
-  const ctx = canvas.getContext('2d');
-  if (!ctx) throw new Error('Could not get canvas context');
-  ctx.drawImage(bitmap, 0, 0);
-  return ctx.getImageData(0, 0, bitmap.width, bitmap.height);
+function blobToImageData(blob: Blob): Promise<ImageData> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      const size = Math.max(img.naturalWidth, img.naturalHeight);
+      canvas.width = size;
+      canvas.height = size;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) {
+        reject(new Error('Could not get canvas context'));
+        return;
+      }
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, size, size);
+      ctx.drawImage(img, 0, 0);
+      resolve(ctx.getImageData(0, 0, size, size));
+      URL.revokeObjectURL(url);
+    };
+    img.onerror = reject;
+    const url = URL.createObjectURL(blob);
+    img.src = url;
+  });
 }

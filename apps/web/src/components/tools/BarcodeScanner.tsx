@@ -97,7 +97,7 @@ export function BarcodeScannerComponent({ locale = 'en' }: BarcodeScannerProps) 
       }
     >
       <div className="space-y-5">
-        <div className="relative border border-border bg-text aspect-[4/3] w-full overflow-hidden">
+        <div className="relative border border-border bg-surface aspect-[4/3] w-full overflow-hidden">
           <video
             id={videoId}
             className={`h-full w-full object-cover ${!isScanning ? 'hidden' : ''}`}

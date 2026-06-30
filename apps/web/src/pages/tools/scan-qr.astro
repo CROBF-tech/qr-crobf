@@ -1,21 +1,21 @@
 ---
 import Layout from '../../layouts/Layout.astro';
-import { BarcodeGenerator } from '../../components/tools/BarcodeGenerator';
+import { QRScannerComponent } from '../../components/tools/QRScanner';
 import { getLocaleFromPath, getTranslations } from '../../i18n/utils';
 
 const locale = getLocaleFromPath(Astro.url.pathname);
 const t = getTranslations(locale);
 ---
 
-<Layout title={t.barcodePageTitle} description={t.barcodePageDescription}>
+<Layout title={t.qrScannerPageTitle} description={t.qrScannerPageDescription}>
   <section class="border-b border-border bg-bg">
     <div class="mx-auto flex max-w-[1400px] flex-col gap-3 px-4 py-10 md:flex-row md:items-center md:justify-between md:px-6 md:py-12">
       <div>
-        <p class="mb-2 font-mono text-xs uppercase tracking-[0.2em] text-accent">{t.barcodePageBreadcrumb}</p>
+        <p class="mb-2 font-mono text-xs uppercase tracking-[0.2em] text-accent">{t.qrScannerPageBreadcrumb}</p>
         <h1 class="font-display text-2xl font-semibold tracking-tight text-text md:text-4xl lg:text-5xl">
-          {t.barcodePageTitle}
+          {t.qrScannerPageTitle}
         </h1>
-        <p class="mt-2 max-w-xl text-sm text-text-soft md:text-base">{t.barcodePageDescription}</p>
+        <p class="mt-2 max-w-xl text-sm text-text-soft md:text-base">{t.qrScannerPageDescription}</p>
       </div>
       <a
         href={locale === 'en' ? '/' : '/es/'}
@@ -31,6 +31,8 @@ const t = getTranslations(locale);
   </section>
 
   <section class="mx-auto max-w-[1400px] px-4 py-10 md:px-6 md:py-16">
-    <BarcodeGenerator client:load locale={locale} />
+    <div class="mx-auto max-w-xl">
+      <QRScannerComponent client:load locale={locale} />
+    </div>
   </section>
 </Layout>

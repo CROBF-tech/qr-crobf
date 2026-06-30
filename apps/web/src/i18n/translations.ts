@@ -24,6 +24,9 @@ export const ui = {
     heroCtaQr: 'Create a QR code',
     heroCtaBarcode: 'Create a barcode',
 
+    heroCtaScanQr: 'Scan a QR code',
+    heroCtaScanBarcode: 'Scan a barcode',
+
     benefitPrivacyTitle: 'Completely private',
     benefitPrivacyDesc: 'Your data never leaves your browser. We do not store, track, or transmit anything.',
     benefitFreeTitle: 'Free and unlimited',
@@ -108,6 +111,17 @@ export const ui = {
     qrCustomizeFormatJpeg: 'JPEG',
     qrCustomizeValidationWarning: 'The QR could not be read. Try lowering the logo size, increasing contrast, or reducing styling complexity.',
 
+    // Scanner pages
+    qrScannerPageBreadcrumb: 'Tools / QR Scanner',
+    qrScannerPageTitle: 'Scan QR Codes with Your Camera',
+    qrScannerPageDescription:
+      'Scan any QR code instantly using your device camera. No uploads, no server, no sign-up.',
+
+    barcodeScannerPageBreadcrumb: 'Tools / Barcode Scanner',
+    barcodeScannerPageTitle: 'Scan Barcodes with Your Camera',
+    barcodeScannerPageDescription:
+      'Read barcodes with your camera. Supports EAN, UPC, CODE128, CODE39, and more. Private and fast.',
+
     // QR Scanner component
     qrScanTitle: 'Scan a QR Code',
     qrScanDescription: 'Use your camera to read any QR code instantly.',
@@ -185,6 +199,9 @@ export const ui = {
       'Sin cuentas. Sin descargas. Sin enviar datos a ningún sitio. Escribe tu contenido, personaliza el diseño y descarga tu código en PNG, SVG o JPEG.',
     heroCtaQr: 'Crear un QR',
     heroCtaBarcode: 'Crear un código de barras',
+
+    heroCtaScanQr: 'Leer un QR',
+    heroCtaScanBarcode: 'Leer un código de barras',
 
     benefitPrivacyTitle: 'Completamente privado',
     benefitPrivacyDesc: 'Tus datos nunca salen de tu navegador. No almacenamos, rastreamos ni transmitimos nada.',
@@ -269,6 +286,17 @@ export const ui = {
     qrCustomizeFormatSvg: 'SVG',
     qrCustomizeFormatJpeg: 'JPEG',
     qrCustomizeValidationWarning: 'No se pudo leer el QR. Prueba a reducir el logo, aumentar el contraste o simplificar el estilo.',
+
+    // Scanner pages
+    qrScannerPageBreadcrumb: 'Herramientas / Lector QR',
+    qrScannerPageTitle: 'Lee Códigos QR con tu Cámara',
+    qrScannerPageDescription:
+      'Escanea cualquier código QR al instante con la cámara de tu dispositivo. Sin subidas, sin servidor, sin registro.',
+
+    barcodeScannerPageBreadcrumb: 'Herramientas / Lector de Barras',
+    barcodeScannerPageTitle: 'Lee Códigos de Barras con tu Cámara',
+    barcodeScannerPageDescription:
+      'Lee códigos de barras con tu cámara. Soporta EAN, UPC, CODE128, CODE39 y más. Privado y rápido.',
 
     // QR Scanner component
     qrScanTitle: 'Leer un QR',

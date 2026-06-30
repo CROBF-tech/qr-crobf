@@ -51,6 +51,9 @@ importers:
       '@repo/typescript-config':
         specifier: workspace:*
         version: link:../../packages/typescript-config
+      jsqr:
+        specifier: ^1.4.0
+        version: 1.4.0
       tailwindcss:
         specifier: ^4.3.2
         version: 4.3.2

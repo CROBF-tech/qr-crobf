@@ -96,10 +96,10 @@ export function QRScannerComponent({ locale = 'en' }: QRScannerProps) {
       }
     >
       <div className="space-y-5">
-        <div
-          id={containerId}
-          className={`border border-border bg-text aspect-square w-full overflow-hidden ${!isScanning ? 'flex items-center justify-center' : ''}`}
-        >
+      <div
+        id={containerId}
+        className={`border border-border bg-surface aspect-square w-full overflow-hidden ${!isScanning ? 'flex items-center justify-center' : ''}`}
+      >
           {!isScanning && (
             <div className="flex flex-col items-center gap-3 px-4 text-center">
               <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.25" strokeLinecap="round" strokeLinejoin="round" className="text-text-soft">

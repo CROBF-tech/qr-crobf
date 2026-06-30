@@ -1,12 +1,11 @@
 'use client';
 
-import { useState, useCallback, useEffect, useRef, type FormEvent } from 'react';
+import { useState, useCallback, useEffect, type FormEvent } from 'react';
 import {
-  createQRCode,
+  renderQRCodeToDataUrl,
   getQRCodeBlob,
   downloadQRCode,
   copyQRCodeToClipboard,
-  validateQRCode,
   type QRGeneratorOptions,
   type QRValidationResult,
   type QRStyleType,
@@ -14,6 +13,7 @@ import {
   type QRCornerDotType,
   type QRErrorCorrectionLevel,
 } from '@crobf/qr-tools';
+import jsQR from 'jsqr';
 import { Card } from '../ui/Card';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
@@ -64,14 +64,12 @@ export function QRGenerator({ locale = 'en' }: QRGeneratorProps) {
 
   const [text, setText] = useState('');
   const [config, setConfig] = useState<QRGeneratorOptions>(defaultConfig);
-  const debouncedConfig = useDebounce(config, 250);
-  const [, setDataUrl] = useState('');
+  const debouncedConfig = useDebounce(config, 300);
+  const [dataUrl, setDataUrl] = useState('');
   const [validation, setValidation] = useState<QRValidationResult | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [exportFormat, setExportFormat] = useState<'png' | 'svg' | 'jpeg'>('png');
   const [copySuccess, setCopySuccess] = useState(false);
-  const previewRef = useRef<HTMLDivElement>(null);
-  const qrRef = useRef<ReturnType<typeof createQRCode> | null>(null);
 
   const hasImage = Boolean(config.image?.src);
 
@@ -89,34 +87,25 @@ export function QRGenerator({ locale = 'en' }: QRGeneratorProps) {
         setDataUrl('');
         setValidation(null);
         setIsGenerating(false);
-        qrRef.current = null;
-        if (previewRef.current) previewRef.current.innerHTML = '';
         return;
       }
 
       setIsGenerating(true);
       try {
-        const qr = createQRCode({ ...debouncedConfig, data: text });
-        qrRef.current = qr;
-
-        const blob = await qr.getRawData('png');
-        const nextDataUrl = blob ? await blobToDataURL(blob as Blob) : '';
-        const result = await validateQRCode(qr, text);
+        const options = { ...debouncedConfig, data: text.trim() };
+        const nextDataUrl = await renderQRCodeToDataUrl(options);
+        const result = nextDataUrl ? await validateQRCodeFromDataUrl(nextDataUrl, text.trim()) : null;
 
         if (!cancelled) {
-          setDataUrl(nextDataUrl);
+          setDataUrl(nextDataUrl ?? '');
           setValidation(result);
-          if (previewRef.current) {
-            previewRef.current.innerHTML = '';
-            qr.append(previewRef.current);
-          }
         }
       } catch {
         if (!cancelled) {
           setDataUrl('');
           setValidation({
             readable: false,
-            warning: 'Could not generate the QR code. Try with less text or simpler styling.',
+            warning: t.qrGenError,
           });
         }
       } finally {
@@ -128,18 +117,18 @@ export function QRGenerator({ locale = 'en' }: QRGeneratorProps) {
     return () => {
       cancelled = true;
     };
-  }, [debouncedConfig, text]);
+  }, [debouncedConfig, text, t.qrGenError]);
 
   const handleDownload = useCallback(async () => {
-    if (!text.trim() || !qrRef.current) return;
-    const blob = await getQRCodeBlob({ ...config, data: text }, exportFormat);
+    if (!text.trim()) return;
+    const blob = await getQRCodeBlob({ ...config, data: text.trim() }, exportFormat);
     if (blob) downloadQRCode(blob, `qr-crobf-${Date.now()}.${exportFormat}`);
   }, [config, exportFormat, text]);
 
   const handleCopy = useCallback(async () => {
     if (!text.trim()) return;
     try {
-      await copyQRCodeToClipboard({ ...config, data: text });
+      await copyQRCodeToClipboard({ ...config, data: text.trim() });
       setCopySuccess(true);
       setTimeout(() => setCopySuccess(false), 2000);
     } catch {
@@ -196,16 +185,26 @@ export function QRGenerator({ locale = 'en' }: QRGeneratorProps) {
           />
 
           <div className="border border-border bg-bg p-4 text-center md:p-6">
-            <div
-              ref={previewRef}
-              className="mx-auto flex min-h-[200px] items-center justify-center"
-            />
-            {!text.trim() && (
-              <p className="mt-2 text-sm text-text-soft">{t.qrGenEmpty}</p>
+            {dataUrl ? (
+              <img
+                src={dataUrl}
+                alt={t.qrGenAlt}
+                className="mx-auto h-auto max-w-full"
+                style={{ maxHeight: 400 }}
+              />
+            ) : (
+              <div className="mx-auto flex min-h-[200px] items-center justify-center">
+                {!text.trim() && (
+                  <p className="text-sm text-text-soft">{t.qrGenEmpty}</p>
+                )}
+                {text.trim() && isGenerating && (
+                  <p className="text-sm text-text-soft">{t.qrGenLoading}</p>
+                )}
+              </div>
             )}
           </div>
 
-          {validation && !validation.readable && text.trim() && (
+          {validation && !validation.readable && text.trim() && !isGenerating && (
             <div className="border border-accent bg-accent/10 px-4 py-3 text-sm text-accent">
               {validation.warning || t.qrCustomizeValidationWarning}
             </div>
@@ -399,11 +398,45 @@ export function QRGenerator({ locale = 'en' }: QRGeneratorProps) {
   );
 }
 
-function blobToDataURL(blob: Blob): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onloadend = () => resolve(reader.result as string);
-    reader.onerror = reject;
-    reader.readAsDataURL(blob);
+async function validateQRCodeFromDataUrl(dataUrl: string, expectedData: string): Promise<QRValidationResult> {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      const size = Math.max(img.naturalWidth, img.naturalHeight);
+      canvas.width = size;
+      canvas.height = size;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) {
+        resolve({ readable: false, warning: 'Could not validate the QR code.' });
+        return;
+      }
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, size, size);
+      ctx.drawImage(img, 0, 0);
+      const { data, width, height } = ctx.getImageData(0, 0, size, size);
+      try {
+        const code = jsQR(data, width, height);
+        if (!code) {
+          resolve({
+            readable: false,
+            warning:
+              'The QR could not be read. Try lowering the logo size, increasing contrast, or reducing styling complexity.',
+          });
+        } else if (code.data !== expectedData) {
+          resolve({
+            readable: false,
+            warning: 'The QR decoded differently from the input. Try a higher error-correction level or a smaller logo.',
+          });
+        } else {
+          resolve({ readable: true, decodedText: code.data });
+        }
+      } catch {
+        resolve({ readable: false, warning: 'Could not validate the QR code.' });
+      }
+    };
+    img.onerror = () => resolve({ readable: false, warning: 'Could not validate the QR code.' });
+    img.src = dataUrl;
   });
 }
