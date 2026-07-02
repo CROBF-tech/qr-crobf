@@ -1,0 +1,97 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import ToolCard from '../../components/ui/ToolCard.astro';
+import { getTranslations, getLocaleFromPath, type Locale } from '../../i18n/utils';
+
+const locale = getLocaleFromPath(Astro.url.pathname);
+const t = getTranslations(locale);
+const makePath = (p: string) => locale === 'en' ? p : `/es${p}`;
+---
+
+<Layout
+  title={t.siteTitle}
+  description={t.siteTagline}
+  locale={locale}
+  canonicalPath="/es/"
+  ogLocale="es_ES"
+>
+  <section class="py-14 md:py-20 lg:py-24 px-4 md:px-6 relative overflow-hidden">
+    <div class="max-w-[1400px] mx-auto relative">
+      <div
+        class="absolute left-0 right-0 h-px bg-accent animate-scan-line"
+        style="box-shadow: 0 0 8px rgba(196, 92, 62, 0.6);"
+      ></div>
+      <span class="font-mono text-xs uppercase tracking-[0.2em] text-accent mb-4 block">
+        {t.heroEyebrow}
+      </span>
+      <h1 class="font-display text-[clamp(2rem,6vw,3.75rem)] font-semibold leading-[1.1] tracking-tight mb-4 max-w-3xl">
+        {t.heroTitle1}<br />{t.heroTitle2}
+      </h1>
+      <p class="text-sm md:text-base leading-relaxed text-text-soft max-w-xl mb-8">
+        {t.heroDescription}
+      </p>
+      <div class="flex flex-wrap gap-3">
+        <a href="/es/tools/qr" class="inline-flex items-center font-mono uppercase tracking-wider bg-text text-bg hover:bg-accent px-6 py-4 text-sm transition-colors duration-200">
+          {t.heroCtaQr}
+        </a>
+        <a href="/es/tools/barcode" class="inline-flex items-center font-mono uppercase tracking-wider bg-surface hover:bg-secondary hover:text-bg px-6 py-4 text-sm transition-colors duration-200 border border-border">
+          {t.heroCtaBarcode}
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <section class="py-12 md:py-16 px-4 md:px-6">
+    <div class="max-w-[1400px] mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div class="border border-border bg-surface p-4 md:p-6">
+        <h3 class="font-display text-lg font-medium mb-2">{t.benefitPrivacyTitle}</h3>
+        <p class="text-sm text-text-soft leading-relaxed">{t.benefitPrivacyDesc}</p>
+      </div>
+      <div class="border border-border bg-surface p-4 md:p-6">
+        <h3 class="font-display text-lg font-medium mb-2">{t.benefitFreeTitle}</h3>
+        <p class="text-sm text-text-soft leading-relaxed">{t.benefitFreeDesc}</p>
+      </div>
+      <div class="border border-border bg-surface p-4 md:p-6">
+        <h3 class="font-display text-lg font-medium mb-2">{t.benefitExportTitle}</h3>
+        <p class="text-sm text-text-soft leading-relaxed">{t.benefitExportDesc}</p>
+      </div>
+      <div class="border border-border bg-surface p-4 md:p-6">
+        <h3 class="font-display text-lg font-medium mb-2">{t.benefitCustomizeTitle}</h3>
+        <p class="text-sm text-text-soft leading-relaxed">{t.benefitCustomizeDesc}</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="py-12 md:py-16 px-4 md:px-6">
+    <div class="max-w-[1400px] mx-auto">
+      <div class="mb-8">
+        <span class="font-mono text-xs uppercase tracking-[0.2em] text-accent mb-2 block">4 {t.toolsAvailable}</span>
+        <h2 class="font-display text-2xl md:text-3xl font-medium mb-2">{t.directoryTitle}</h2>
+        <p class="text-sm md:text-base leading-relaxed text-text-soft">{t.directoryDescription}</p>
+      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <ToolCard href="/es/tools/qr" icon="⬡" title={t.qrGeneratorTitle} description={t.qrGeneratorDesc} category={t.catGenerate} />
+        <ToolCard href="/es/tools/barcode" icon="∥" title={t.barcodeGeneratorTitle} description={t.barcodeGeneratorDesc} category={t.catGenerate} />
+        <ToolCard href="/es/tools/scan-qr" icon="◎" title={t.qrScannerTitle} description={t.qrScannerDesc} category={t.catRead} />
+        <ToolCard href="/es/tools/scan-barcode" icon="▤" title={t.barcodeScannerTitle} description={t.barcodeScannerDesc} category={t.catRead} />
+      </div>
+    </div>
+  </section>
+</Layout>
+
+<style>
+  @keyframes scanLine {
+    0% { top: 0%; }
+    50% { top: calc(100% - 1px); }
+    100% { top: 0%; }
+  }
+  .animate-scan-line {
+    animation: scanLine 4s ease-in-out infinite;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .animate-scan-line {
+      animation: none;
+      top: 50%;
+    }
+  }
+</style>

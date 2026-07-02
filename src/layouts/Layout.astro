@@ -1,23 +1,134 @@
-<!doctype html>
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<meta name="viewport" content="width=device-width" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<link rel="icon" href="/favicon.ico" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro Basics</title>
-	</head>
-	<body>
-		<slot />
-	</body>
-</html>
+---
+import '../styles/global.css';
+import LanguagePicker from '../components/ui/LanguagePicker.astro';
+import ThemeToggle from '../components/ui/ThemeToggle.astro';
+import { getTranslations, type Locale } from '../i18n/utils';
 
-<style>
-	html,
-	body {
-		margin: 0;
-		width: 100%;
-		height: 100%;
-	}
-</style>
+interface Props {
+  title: string;
+  description: string;
+  locale: Locale;
+  canonicalPath: string;
+  ogLocale?: string;
+}
+
+const {
+  title,
+  description,
+  locale,
+  canonicalPath,
+  ogLocale,
+} = Astro.props;
+
+const t = getTranslations(locale);
+const siteUrl = 'https://qr.crobf.tech';
+const altLocale: Locale = locale === 'en' ? 'es' : 'en';
+
+function buildAltPath(path: string, targetLocale: Locale): string {
+  if (targetLocale === 'en') return path.replace(/^\/es\/?/, '/');
+  return path === '/' ? '/es/' : `/es${path}`;
+}
+
+const altPath = buildAltPath(canonicalPath, altLocale);
+const canonicalUrl = `${siteUrl}${canonicalPath}`;
+const altUrl = `${siteUrl}${altPath}`;
+const ogLocaleTag = ogLocale || (locale === 'en' ? 'en_US' : 'es_ES');
+---
+
+<!doctype html>
+<html lang={locale}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <meta name="robots" content="index, follow" />
+
+    <link rel="canonical" href={canonicalUrl} />
+    <link rel="alternate" hreflang={locale} href={canonicalUrl} />
+    <link rel="alternate" hreflang={altLocale} href={altUrl} />
+    <link rel="alternate" hreflang="x-default" href={locale === 'en' ? canonicalUrl : altUrl} />
+
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonicalUrl} />
+    <meta property="og:locale" content={ogLocaleTag} />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content={t.brandName} />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+
+    <script type="application/ld+json" set:html={JSON.stringify({
+      '@context': 'https://schema.org',
+      '@type': 'WebSite',
+      name: t.brandName,
+      description: t.siteTagline,
+      url: siteUrl,
+    })} />
+
+    <script type="application/ld+json" set:html={JSON.stringify({
+      '@context': 'https://schema.org',
+      '@type': 'WebPage',
+      name: title,
+      description: description,
+      url: canonicalUrl,
+      inLanguage: locale,
+    })} />
+
+    <script>
+      const STORAGE_KEY = 'theme';
+      const stored = typeof localStorage !== 'undefined' ? localStorage.getItem(STORAGE_KEY) : null;
+      if (stored === 'dark' || (!stored && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+    </script>
+  </head>
+
+  <body class="min-h-screen bg-bg text-text transition-colors duration-200">
+    <header class="border-b border-border">
+      <div class="max-w-[1400px] mx-auto px-4 md:px-6 flex items-center justify-between h-14">
+        <a href={locale === 'en' ? '/' : '/es/'} class="flex items-center gap-2.5 text-text hover:text-accent transition-colors">
+          <svg width="24" height="24" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect width="32" height="32" rx="6" fill="#1a1917"/>
+            <rect x="5" y="5" width="8" height="8" rx="2" fill="#c45c3e"/>
+            <rect x="19" y="5" width="8" height="8" rx="2" fill="#c45c3e"/>
+            <rect x="5" y="19" width="8" height="8" rx="2" fill="#c45c3e"/>
+            <rect x="19" y="19" width="8" height="8" rx="2" fill="#c45c3e"/>
+            <rect x="8" y="8" width="2" height="2" rx="0.5" fill="#f5f0e9"/>
+            <rect x="22" y="8" width="2" height="2" rx="0.5" fill="#f5f0e9"/>
+            <rect x="8" y="22" width="2" height="2" rx="0.5" fill="#f5f0e9"/>
+          </svg>
+          <span class="font-mono text-xs tracking-wider">{t.brandName}</span>
+        </a>
+        <div class="flex items-center gap-1">
+          <LanguagePicker />
+          <ThemeToggle />
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <slot />
+    </main>
+
+    <footer class="border-t border-border mt-12 md:mt-16">
+      <div class="max-w-[1400px] mx-auto px-4 md:px-6 py-8 md:py-10 flex flex-col items-center text-center gap-2">
+        <span class="font-display text-lg font-medium">{t.footerBrand}</span>
+        <p class="text-sm text-text-soft">{t.footerTagline}</p>
+      </div>
+    </footer>
+  </body>
+</html>

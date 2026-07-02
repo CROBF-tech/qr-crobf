@@ -1,0 +1,31 @@
+---
+import Layout from '../../../layouts/Layout.astro';
+import { BarcodeGenerator } from '../../../components/tools/BarcodeGenerator';
+import { getTranslations, getLocaleFromPath } from '../../../i18n/utils';
+
+const locale = getLocaleFromPath(Astro.url.pathname);
+const t = getTranslations(locale);
+---
+
+<Layout
+  title={t.barcodePageTitle}
+  description={t.barcodePageDescription}
+  locale={locale}
+  canonicalPath="/es/tools/barcode"
+  ogLocale="es_ES"
+>
+  <div class="max-w-[1400px] mx-auto px-4 md:px-6 py-8 md:py-12">
+    <div class="mb-6">
+      <div class="flex items-center gap-2 mb-4">
+        <a href="/es/" class="font-mono text-xs text-text-soft hover:text-text transition-colors">
+          {t.backToTools}
+        </a>
+        <span class="text-text-soft text-xs">/</span>
+        <span class="font-mono text-xs text-accent">{t.barcodePageBreadcrumb}</span>
+      </div>
+      <h1 class="font-display text-2xl md:text-3xl font-medium mb-2">{t.barcodePageTitle}</h1>
+      <p class="text-sm md:text-base text-text-soft">{t.barcodePageDescription}</p>
+    </div>
+    <BarcodeGenerator locale={locale} client:load />
+  </div>
+</Layout>
