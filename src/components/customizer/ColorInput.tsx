@@ -1,5 +1,3 @@
-'use client';
-
 interface ColorInputProps {
   label: string;
   value: string;

@@ -1,10 +1,6 @@
-'use client';
-
-import type { ReactNode } from 'react';
-
 interface CodeCustomizerPanelProps {
   title: string;
-  children: ReactNode;
+  children: React.ReactNode;
 }
 
 export function CodeCustomizerPanel({ title, children }: CodeCustomizerPanelProps) {

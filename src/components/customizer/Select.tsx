@@ -1,5 +1,3 @@
-'use client';
-
 interface SelectProps {
   label: string;
   value: string;

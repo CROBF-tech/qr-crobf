@@ -1,6 +1,3 @@
-'use client';
-
-import { useState } from 'react';
 import { Toggle } from './Toggle';
 import { Select } from './Select';
 import { ColorInput } from './ColorInput';

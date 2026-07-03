@@ -1,10 +1,6 @@
-'use client';
-
-import type { ReactNode } from 'react';
-
 interface SectionProps {
   title: string;
-  children: ReactNode;
+  children: React.ReactNode;
 }
 
 export function Section({ title, children }: SectionProps) {
