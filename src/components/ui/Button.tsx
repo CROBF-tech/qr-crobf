@@ -1,11 +1,9 @@
-'use client';
-
-import type { ReactNode, ButtonHTMLAttributes } from 'react';
+import type { ButtonHTMLAttributes } from 'react';
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'primary' | 'secondary' | 'ghost';
   size?: 'sm' | 'md' | 'lg';
-  children: ReactNode;
+  children: React.ReactNode;
 }
 
 const variantClasses: Record<string, string> = {
