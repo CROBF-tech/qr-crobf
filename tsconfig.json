@@ -17,11 +17,10 @@
     "sourceMap": true,
     "jsx": "react-jsx",
     "lib": ["es2022", "dom", "dom.iterable"],
-    "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"]
     }
   },
-  "include": [".astro/types.d.ts", "**/*"],
+  "include": [".astro/types.d.ts", "./src/**/*"],
   "exclude": ["dist"]
 }
