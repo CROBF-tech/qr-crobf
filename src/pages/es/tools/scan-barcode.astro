@@ -1,6 +1,5 @@
 ---
 import Layout from '../../../layouts/Layout.astro';
-import { BarcodeScannerComponent } from '../../../components/tools/BarcodeScanner';
 import { getTranslations, getLocaleFromPath } from '../../../i18n/utils';
 
 const locale = getLocaleFromPath(Astro.url.pathname);
@@ -8,13 +7,13 @@ const t = getTranslations(locale);
 ---
 
 <Layout
-  title={t.barcodeScannerPageTitle}
-  description={t.barcodeScannerPageDescription}
+  title={t.barcodeScannerPageTitle!}
+  description={t.barcodeScannerPageDescription!}
   locale={locale}
   canonicalPath="/es/tools/scan-barcode"
   ogLocale="es_ES"
 >
-  <div class="max-w-[1400px] mx-auto px-4 md:px-6 py-8 md:py-12">
+  <div class="max-w-350 mx-auto px-4 md:px-6 py-8 md:py-12">
     <div class="mb-6">
       <div class="flex items-center gap-2 mb-4">
         <a href="/es/" class="font-mono text-xs text-text-soft hover:text-text transition-colors">
@@ -26,8 +25,6 @@ const t = getTranslations(locale);
       <h1 class="font-display text-2xl md:text-3xl font-medium mb-2">{t.barcodeScannerPageTitle}</h1>
       <p class="text-sm md:text-base text-text-soft">{t.barcodeScannerPageDescription}</p>
     </div>
-    <div class="max-w-lg">
-      <BarcodeScannerComponent locale={locale} client:only="react" />
-    </div>
+    <p class="font-mono text-sm text-text-soft">No disponible hoy</p>
   </div>
 </Layout>
