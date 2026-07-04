@@ -1,5 +1,6 @@
 ---
 import Layout from '../../../layouts/Layout.astro';
+import { QRGenerator } from '../../../components/QRGenerator';
 import { getTranslations, getLocaleFromPath } from '../../../i18n/utils';
 
 const locale = getLocaleFromPath(Astro.url.pathname);
@@ -25,6 +26,6 @@ const t = getTranslations(locale);
       <h1 class="font-display text-2xl md:text-3xl font-medium mb-2">{t.qrPageTitle}</h1>
       <p class="text-sm md:text-base text-text-soft">{t.qrPageDescription}</p>
     </div>
-    <p class="font-mono text-sm text-text-soft">No disponible hoy</p>
+    <QRGenerator locale={locale} client:only="react" />
   </div>
 </Layout>
