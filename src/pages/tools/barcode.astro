@@ -1,5 +1,6 @@
 ---
 import Layout from '../../layouts/Layout.astro';
+import Container from '../../components/ui/Container.astro';
 import { BarcodeGenerator } from '../../components/BarcodeGenerator';
 import { getTranslations, getLocaleFromPath } from '../../i18n/utils';
 
@@ -14,18 +15,20 @@ const homePath = locale === 'en' ? '/' : '/es/';
   locale={locale}
   canonicalPath="/tools/barcode"
 >
-  <div class="max-w-350 mx-auto px-4 md:px-6 py-8 md:py-12">
-    <div class="mb-6">
-      <div class="flex items-center gap-2 mb-4">
-        <a href={homePath} class="font-mono text-xs text-text-soft hover:text-text transition-colors">
+  <Container size="xl" class="py-8 md:py-12">
+    <div class="mb-8 max-w-2xl">
+      <div class="flex items-center gap-2 mb-4 font-mono text-[11px] uppercase tracking-wider">
+        <a href={homePath} class="text-text-soft hover:text-text transition-colors">
           {t.backToTools}
         </a>
-        <span class="text-text-soft text-xs">/</span>
-        <span class="font-mono text-xs text-accent">{t.barcodePageBreadcrumb}</span>
+        <span class="text-text-soft" aria-hidden="true">/</span>
+        <span class="text-accent">{t.barcodePageBreadcrumb}</span>
       </div>
-      <h1 class="font-display text-2xl md:text-3xl font-medium mb-2">{t.barcodePageTitle}</h1>
-      <p class="text-sm md:text-base text-text-soft">{t.barcodePageDescription}</p>
+      <h1 class="font-display text-3xl md:text-4xl font-medium leading-tight tracking-tight mb-3">
+        {t.barcodePageTitle}
+      </h1>
+      <p class="text-base text-text-soft leading-relaxed">{t.barcodePageDescription}</p>
     </div>
     <BarcodeGenerator locale={locale} client:only="react" />
-  </div>
+  </Container>
 </Layout>

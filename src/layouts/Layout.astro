@@ -1,8 +1,10 @@
 ---
 import '../styles/global.css';
+import Container from '../components/ui/Container.astro';
 import LanguagePicker from '../components/ui/LanguagePicker.astro';
 import ThemeToggle from '../components/ui/ThemeToggle.astro';
-import { getTranslations, type Locale } from '../i18n/utils';
+import { getTranslations, getLocaleFromPath, type Locale } from '../i18n/utils';
+
 export interface Props {
   title: string;
   description: string;
@@ -32,6 +34,16 @@ const altPath = buildAltPath(canonicalPath, altLocale);
 const canonicalUrl = `${siteUrl}${canonicalPath}`;
 const altUrl = `${siteUrl}${altPath}`;
 const ogLocaleTag = ogLocale || (locale === 'en' ? 'en_US' : 'es_ES');
+
+const homePath = locale === 'en' ? '/' : '/es/';
+const tools = [
+  { href: locale === 'en' ? '/tools/qr' : '/es/tools/qr', label: t.navQrGenerator!, key: 'qr' },
+  { href: locale === 'en' ? '/tools/barcode' : '/es/tools/barcode', label: t.navBarcodeGenerator!, key: 'barcode' },
+  { href: locale === 'en' ? '/tools/scan-qr' : '/es/tools/scan-qr', label: t.navQrScanner!, key: 'scan-qr' },
+  { href: locale === 'en' ? '/tools/scan-barcode' : '/es/tools/scan-barcode', label: t.navBarcodeScanner!, key: 'scan-barcode' },
+];
+
+const currentPath = Astro.url.pathname;
 ---
 
 <!doctype html>
@@ -97,37 +109,90 @@ const ogLocaleTag = ogLocale || (locale === 'en' ? 'en_US' : 'es_ES');
   </head>
 
   <body class="min-h-screen bg-bg text-text transition-colors duration-200">
-    <header class="border-b border-border">
-      <div class="max-w-350 mx-auto px-4 md:px-6 flex items-center justify-between h-14">
-        <a href={locale === 'en' ? '/' : '/es/'} class="flex items-center gap-2.5 text-text hover:text-accent transition-colors">
-          <svg width="24" height="24" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect width="32" height="32" rx="6" fill="#1a1917"/>
-            <rect x="5" y="5" width="8" height="8" rx="2" fill="#c45c3e"/>
-            <rect x="19" y="5" width="8" height="8" rx="2" fill="#c45c3e"/>
-            <rect x="5" y="19" width="8" height="8" rx="2" fill="#c45c3e"/>
-            <rect x="19" y="19" width="8" height="8" rx="2" fill="#c45c3e"/>
-            <rect x="8" y="8" width="2" height="2" rx="0.5" fill="#f5f0e9"/>
-            <rect x="22" y="8" width="2" height="2" rx="0.5" fill="#f5f0e9"/>
-            <rect x="8" y="22" width="2" height="2" rx="0.5" fill="#f5f0e9"/>
-          </svg>
-          <span class="font-mono text-xs tracking-wider">{t.brandName}</span>
-        </a>
-        <div class="flex items-center gap-1">
-          <LanguagePicker />
-          <ThemeToggle />
+    <a href="#main" data-sr-only>Skip to content</a>
+
+    <header aria-label="Primary" class="border-b border-border sticky top-0 z-30 bg-bg/80 backdrop-blur-sm">
+      <Container size="xl">
+        <div class="flex items-center justify-between h-16">
+          <div class="flex items-center gap-8">
+            <a href={homePath} class="flex items-center gap-2.5 text-text hover:text-accent transition-colors" aria-label={t.brandName}>
+              <svg width="28" height="28" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <rect width="32" height="32" rx="6" fill="var(--text)"/>
+                <rect x="5" y="5" width="8" height="8" rx="2" fill="var(--accent)"/>
+                <rect x="19" y="5" width="8" height="8" rx="2" fill="var(--accent)"/>
+                <rect x="5" y="19" width="8" height="8" rx="2" fill="var(--accent)"/>
+                <rect x="19" y="19" width="8" height="8" rx="2" fill="var(--accent)"/>
+                <rect x="8" y="8" width="2" height="2" rx="0.5" fill="var(--bg)"/>
+                <rect x="22" y="8" width="2" height="2" rx="0.5" fill="var(--bg)"/>
+                <rect x="8" y="22" width="2" height="2" rx="0.5" fill="var(--bg)"/>
+              </svg>
+              <span class="font-mono text-xs tracking-wider hidden sm:inline">{t.brandName}</span>
+            </a>
+            <nav aria-label="Tools" class="hidden md:flex items-center gap-1">
+              {tools.map((tool) => {
+                const isActive = currentPath === tool.href || (tool.key !== 'qr' && tool.key !== 'barcode' && currentPath.startsWith(tool.href));
+                return (
+                  <a
+                    href={tool.href}
+                    aria-current={isActive ? 'page' : undefined}
+                    class:list={[
+                      'px-3 py-1.5 font-mono text-[11px] uppercase tracking-wider rounded-sm transition-colors',
+                      isActive
+                        ? 'text-text bg-surface'
+                        : 'text-text-soft hover:text-text hover:bg-surface/60',
+                    ]}
+                  >
+                    {tool.label}
+                  </a>
+                );
+              })}
+            </nav>
+          </div>
+          <div class="flex items-center gap-1 sm:gap-2">
+            <LanguagePicker />
+            <ThemeToggle />
+          </div>
         </div>
-      </div>
+        <nav aria-label="Tools" class="md:hidden flex items-center gap-1 pb-3 overflow-x-auto -mx-1 px-1">
+          {tools.map((tool) => {
+            const isActive = currentPath === tool.href;
+            return (
+              <a
+                href={tool.href}
+                aria-current={isActive ? 'page' : undefined}
+                class:list={[
+                  'shrink-0 px-3 py-1.5 font-mono text-[11px] uppercase tracking-wider rounded-sm transition-colors border',
+                  isActive
+                    ? 'text-text border-border bg-surface'
+                    : 'text-text-soft border-transparent hover:text-text',
+                ]}
+              >
+                {tool.label}
+              </a>
+            );
+          })}
+        </nav>
+      </Container>
     </header>
 
-    <main>
+    <main id="main">
       <slot />
     </main>
 
-    <footer class="border-t border-border mt-12 md:mt-16">
-      <div class="max-w-350 mx-auto px-4 md:px-6 py-8 md:py-10 flex flex-col items-center text-center gap-2">
-        <span class="font-display text-lg font-medium">{t.footerBrand}</span>
-        <p class="text-sm text-text-soft">{t.footerTagline}</p>
-      </div>
+    <footer aria-label="Site footer" class="border-t border-border mt-12 md:mt-16">
+      <Container size="xl">
+        <div class="py-8 md:py-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
+          <div>
+            <p class="font-display text-lg font-medium mb-1">{t.footerBrand}</p>
+            <p class="text-sm text-text-soft">{t.footerTagline}</p>
+          </div>
+          <nav aria-label="Footer" class="flex flex-wrap items-center gap-x-6 gap-y-2">
+            <a href={homePath} class="font-mono text-[11px] uppercase tracking-wider text-text-soft hover:text-text">{t.footerHome}</a>
+            <a href={locale === 'en' ? '/tools/qr' : '/es/tools/qr'} class="font-mono text-[11px] uppercase tracking-wider text-text-soft hover:text-text">{t.footerAllTools}</a>
+            <a href="https://github.com/CROBF-tech/qr-crobf" class="font-mono text-[11px] uppercase tracking-wider text-text-soft hover:text-text" target="_blank" rel="noopener noreferrer">{t.footerSource}</a>
+          </nav>
+        </div>
+      </Container>
     </footer>
   </body>
 </html>

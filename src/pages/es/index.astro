@@ -1,11 +1,16 @@
 ---
 import Layout from '../../layouts/Layout.astro';
+import Container from '../../components/ui/Container.astro';
 import ToolCard from '../../components/ui/ToolCard.astro';
-import { getTranslations, getLocaleFromPath, type Locale } from '../../i18n/utils';
+import { getTranslations, getLocaleFromPath } from '../../i18n/utils';
 
 const locale = getLocaleFromPath(Astro.url.pathname);
 const t = getTranslations(locale);
 const makePath = (p: string) => locale === 'en' ? p : `/es${p}`;
+
+const QrIcon = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3z"/><path d="M18 18h3v3"/><path d="M21 14v3"/></svg>`;
+const BarcodeIcon = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5v14"/><path d="M6 5v14"/><path d="M9 5v14"/><path d="M12 5v14"/><path d="M15 5v14"/><path d="M18 5v14"/><path d="M21 5v14"/></svg>`;
+const ScanIcon = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><path d="M7 12h10"/></svg>`;
 ---
 
 <Layout
@@ -15,67 +20,71 @@ const makePath = (p: string) => locale === 'en' ? p : `/es${p}`;
   canonicalPath="/es/"
   ogLocale="es_ES"
 >
-  <section class="py-14 md:py-20 lg:py-24 px-4 md:px-6 relative overflow-hidden">
-    <div class="max-w-350 mx-auto relative">
-      <div
-        class="absolute left-0 right-0 h-px bg-accent animate-scan-line"
-        style="box-shadow: 0 0 8px rgba(196, 92, 62, 0.6);"
-      ></div>
-      <span class="font-mono text-xs uppercase tracking-[0.2em] text-accent mb-4 block">
+  <section class="relative overflow-hidden">
+    <div
+      class="absolute left-0 right-0 h-px bg-accent animate-scan-line"
+      style="box-shadow: 0 0 8px rgba(196, 92, 62, 0.6);"
+    ></div>
+
+    <Container size="xl" class="py-14 md:py-20 lg:py-24">
+      <p class="font-mono text-xs uppercase tracking-[0.2em] text-accent mb-4">
         {t.heroEyebrow}
-      </span>
-      <h1 class="font-display text-[clamp(2rem,6vw,3.75rem)] font-semibold leading-[1.1] tracking-tight mb-4 max-w-3xl">
+      </p>
+      <h1 class="font-display text-[clamp(2rem,6vw,3.75rem)] font-semibold leading-[1.05] tracking-tight mb-5 max-w-3xl">
         {t.heroTitle1}<br />{t.heroTitle2}
       </h1>
-      <p class="text-sm md:text-base leading-relaxed text-text-soft max-w-xl mb-8">
+      <p class="text-base md:text-lg leading-relaxed text-text-soft max-w-2xl mb-8">
         {t.heroDescription}
       </p>
       <div class="flex flex-wrap gap-3">
-        <a href="/es/tools/qr" class="inline-flex items-center font-mono uppercase tracking-wider bg-text text-bg hover:bg-accent px-6 py-4 text-sm transition-colors duration-200">
+        <a href="/es/tools/qr" class="inline-flex items-center justify-center gap-2 font-mono uppercase tracking-wider bg-text text-bg hover:bg-accent active:scale-[0.98] px-6 py-3.5 text-xs sm:text-sm min-h-11 rounded-md transition-all duration-150">
           {t.heroCtaQr}
+          <span aria-hidden="true">→</span>
         </a>
-        <a href="/es/tools/barcode" class="inline-flex items-center font-mono uppercase tracking-wider bg-surface hover:bg-secondary hover:text-bg px-6 py-4 text-sm transition-colors duration-200 border border-border">
-          {t.heroCtaBarcode}
+        <a href="/es/tools/scan-qr" class="inline-flex items-center justify-center gap-2 font-mono uppercase tracking-wider bg-surface hover:bg-surface-elevated text-text border border-border hover:border-text px-6 py-3.5 text-xs sm:text-sm min-h-11 rounded-md transition-all duration-150">
+          {t.heroCtaScan}
         </a>
       </div>
-    </div>
+    </Container>
   </section>
 
-  <section class="py-12 md:py-16 px-4 md:px-6">
-    <div class="max-w-350 mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-      <div class="border border-border bg-surface p-4 md:p-6">
-        <h3 class="font-display text-lg font-medium mb-2">{t.benefitPrivacyTitle}</h3>
-        <p class="text-sm text-text-soft leading-relaxed">{t.benefitPrivacyDesc}</p>
+  <section class="border-t border-border bg-surface/50">
+    <Container size="xl" class="py-12 md:py-16">
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+        <div class="border border-border bg-bg p-4 md:p-6 rounded-md">
+          <h3 class="font-display text-base font-medium mb-2">{t.benefitPrivacyTitle}</h3>
+          <p class="text-sm text-text-soft leading-relaxed">{t.benefitPrivacyDesc}</p>
+        </div>
+        <div class="border border-border bg-bg p-4 md:p-6 rounded-md">
+          <h3 class="font-display text-base font-medium mb-2">{t.benefitFreeTitle}</h3>
+          <p class="text-sm text-text-soft leading-relaxed">{t.benefitFreeDesc}</p>
+        </div>
+        <div class="border border-border bg-bg p-4 md:p-6 rounded-md">
+          <h3 class="font-display text-base font-medium mb-2">{t.benefitExportTitle}</h3>
+          <p class="text-sm text-text-soft leading-relaxed">{t.benefitExportDesc}</p>
+        </div>
+        <div class="border border-border bg-bg p-4 md:p-6 rounded-md">
+          <h3 class="font-display text-base font-medium mb-2">{t.benefitFastTitle}</h3>
+          <p class="text-sm text-text-soft leading-relaxed">{t.benefitFastDesc}</p>
+        </div>
       </div>
-      <div class="border border-border bg-surface p-4 md:p-6">
-        <h3 class="font-display text-lg font-medium mb-2">{t.benefitFreeTitle}</h3>
-        <p class="text-sm text-text-soft leading-relaxed">{t.benefitFreeDesc}</p>
-      </div>
-      <div class="border border-border bg-surface p-4 md:p-6">
-        <h3 class="font-display text-lg font-medium mb-2">{t.benefitExportTitle}</h3>
-        <p class="text-sm text-text-soft leading-relaxed">{t.benefitExportDesc}</p>
-      </div>
-      <div class="border border-border bg-surface p-4 md:p-6">
-        <h3 class="font-display text-lg font-medium mb-2">{t.benefitCustomizeTitle}</h3>
-        <p class="text-sm text-text-soft leading-relaxed">{t.benefitCustomizeDesc}</p>
-      </div>
-    </div>
+    </Container>
   </section>
 
-  <section class="py-12 md:py-16 px-4 md:px-6">
-    <div class="max-w-350 mx-auto">
-      <div class="mb-8">
-        <span class="font-mono text-xs uppercase tracking-[0.2em] text-accent mb-2 block">4 {t.toolsAvailable}</span>
-        <h2 class="font-display text-2xl md:text-3xl font-medium mb-2">{t.directoryTitle}</h2>
+  <section>
+    <Container size="xl" class="py-12 md:py-16">
+      <div class="mb-8 max-w-2xl">
+        <p class="font-mono text-xs uppercase tracking-[0.2em] text-accent mb-2">4 {t.toolsAvailable}</p>
+        <h2 class="font-display text-2xl md:text-3xl font-medium mb-2 leading-tight">{t.directoryTitle}</h2>
         <p class="text-sm md:text-base leading-relaxed text-text-soft">{t.directoryDescription}</p>
       </div>
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <ToolCard href="/es/tools/qr" icon="⬡" title={t.qrGeneratorTitle!} description={t.qrGeneratorDesc!} category={t.catGenerate!} />
-        <ToolCard href="/es/tools/barcode" icon="∥∥" title={t.barcodeGeneratorTitle!} description={t.barcodeGeneratorDesc!} category={t.catGenerate!} />
-        <ToolCard href="/es/tools/scan-qr" icon="◎" title={t.qrScannerTitle!} description={t.qrScannerDesc!} category={t.catRead!} />
-        <ToolCard href="/es/tools/scan-barcode" icon="▤" title={t.barcodeScannerTitle!} description={t.barcodeScannerDesc!} category={t.catRead!} />
+        <ToolCard href="/es/tools/qr" icon={QrIcon} title={t.qrGeneratorTitle!} description={t.qrGeneratorDesc!} category={t.catGenerate!} />
+        <ToolCard href="/es/tools/barcode" icon={BarcodeIcon} title={t.barcodeGeneratorTitle!} description={t.barcodeGeneratorDesc!} category={t.catGenerate!} />
+        <ToolCard href="/es/tools/scan-qr" icon={ScanIcon} title={t.qrScannerTitle!} description={t.qrScannerDesc!} category={t.catRead!} />
+        <ToolCard href="/es/tools/scan-barcode" icon={ScanIcon} title={t.barcodeScannerTitle!} description={t.barcodeScannerDesc!} category={t.catRead!} />
       </div>
-    </div>
+    </Container>
   </section>
 </Layout>
 
