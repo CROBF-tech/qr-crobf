@@ -48,7 +48,8 @@ export function BarcodeGenerator({ locale = 'en' }: BarcodeGeneratorProps) {
         fontSize: 16,
         font: 'JetBrains Mono, monospace',
       });
-    } catch {
+    } catch (err) {
+      console.error('[BarcodeGenerator] JsBarcode failed:', err, { value: submitted.value, format: submitted.format });
       setError(t.barcodeGenError!);
     }
   }, [submitted, t.barcodeGenError]);

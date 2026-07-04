@@ -111,6 +111,7 @@ export function QRScanner({ locale = 'en' }: QRScannerProps) {
           }
         );
       } catch (err) {
+        console.error('[QRScanner] startCamera failed:', err);
         if (!mountedRef.current) {
           cleanup();
           return;
@@ -137,7 +138,8 @@ export function QRScanner({ locale = 'en' }: QRScannerProps) {
       } else {
         setError(t.qrScanErrorGeneric!);
       }
-    } catch {
+    } catch (err) {
+      console.error('[QRScanner] handleImageSelected failed:', err);
       setError(t.qrScanErrorGeneric!);
     }
   };

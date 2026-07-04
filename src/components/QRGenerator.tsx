@@ -54,7 +54,8 @@ export function QRGenerator({ locale = 'en' }: QRGeneratorProps) {
     await new Promise((r) => setTimeout(r, 80));
     try {
       setSubmitted(value);
-    } catch {
+    } catch (err) {
+      console.error('[QRGenerator] onSubmit failed:', err);
       setError(t.qrGenError!);
     } finally {
       setCreating(false);

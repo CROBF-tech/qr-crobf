@@ -112,6 +112,7 @@ export function BarcodeScannerComponent({ locale = 'en' }: BarcodeScannerProps) 
       try {
         stream = await requestCamera();
       } catch (err) {
+        console.error('[BarcodeScanner] requestCamera failed:', err);
         if (!mountedRef.current) return;
         handleError(err);
         return;
@@ -128,6 +129,7 @@ export function BarcodeScannerComponent({ locale = 'en' }: BarcodeScannerProps) 
       try {
         await video.play();
       } catch (err) {
+        console.error('[BarcodeScanner] video.play() failed:', err);
         stopStream(stream);
         streamRef.current = null;
         video.srcObject = null;
@@ -154,11 +156,11 @@ export function BarcodeScannerComponent({ locale = 'en' }: BarcodeScannerProps) 
           finishWithResult(scan.text, scan.format);
         });
       } catch (err) {
+        console.error('[BarcodeScanner] scanner.start failed:', err);
         if (!mountedRef.current) {
           cleanup();
           return;
         }
-        console.warn('BarcodeScanner live start failed', err);
       }
     } finally {
       startingRef.current = false;

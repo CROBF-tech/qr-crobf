@@ -45,7 +45,10 @@ function upscale2x(video: HTMLVideoElement): HTMLCanvasElement {
   canvas.width = video.videoWidth * 2;
   canvas.height = video.videoHeight * 2;
   const ctx = canvas.getContext('2d', { willReadFrequently: true });
-  if (!ctx) throw new Error('Could not get 2D context');
+  if (!ctx) {
+    console.error('[frame-preprocessor] upscale2x: could not get 2D context');
+    throw new Error('Could not get 2D context');
+  }
   ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
   return canvas;
 }
@@ -62,7 +65,10 @@ function canvasToBlob(canvas: HTMLCanvasElement): Promise<Blob> {
 function grayscaleVariant(video: HTMLVideoElement): HTMLCanvasElement {
   const canvas = upscale2x(video);
   const ctx = canvas.getContext('2d', { willReadFrequently: true });
-  if (!ctx) throw new Error('Could not get 2D context');
+  if (!ctx) {
+    console.error('[frame-preprocessor] grayscaleVariant: could not get 2D context');
+    throw new Error('Could not get 2D context');
+  }
   const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
   toGrayscaleAndContrast(imageData);
   ctx.putImageData(imageData, 0, 0);
@@ -75,15 +81,27 @@ function grayscaleVariant(video: HTMLVideoElement): HTMLCanvasElement {
  * Additional variants can be added here if a particular code type needs them.
  */
 export async function capturePreprocessedFrames(video: HTMLVideoElement): Promise<FrameVariant[]> {
-  if (!video.videoWidth || !video.videoHeight) return [];
+  if (!video.videoWidth || !video.videoHeight) {
+    console.error('[frame-preprocessor] capturePreprocessedFrames: video has no dimensions', {
+      videoWidth: video.videoWidth,
+      videoHeight: video.videoHeight,
+      readyState: video.readyState
+    });
+    return [];
+  }
 
   const variants: FrameVariant[] = [];
 
-  const processed = grayscaleVariant(video);
-  variants.push({
-    blob: await canvasToBlob(processed),
-    label: '2x+grayscale+contrast',
-  });
+  try {
+    const processed = grayscaleVariant(video);
+    variants.push({
+      blob: await canvasToBlob(processed),
+      label: '2x+grayscale+contrast',
+    });
+  } catch (err) {
+    console.error('[frame-preprocessor] capturePreprocessedFrames failed:', err);
+    return [];
+  }
 
   return variants;
 }

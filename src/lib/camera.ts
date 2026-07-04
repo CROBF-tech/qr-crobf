@@ -42,16 +42,20 @@ export async function requestCamera(
   constraints: MediaStreamConstraints = CAMERA_CONSTRAINTS
 ): Promise<MediaStream> {
   if (!isSecureContext()) {
-    throw new CameraRequestError(
+    const error = new CameraRequestError(
       'SecurityError',
       'Camera access requires a secure context (HTTPS or localhost).'
     );
+    console.error('[camera] requestCamera failed:', error);
+    throw error;
   }
   if (!isCameraApiSupported()) {
-    throw new CameraRequestError(
+    const error = new CameraRequestError(
       'NotFoundError',
       'Camera API is not available in this browser.'
     );
+    console.error('[camera] requestCamera failed:', error);
+    throw error;
   }
   return navigator.mediaDevices.getUserMedia(constraints);
 }

@@ -25,7 +25,8 @@ async function tryDecode(reader: BrowserMultiFormatReader, url: string): Promise
       text: result.getText(),
       format: result.getBarcodeFormat().toString(),
     };
-  } catch {
+  } catch (err) {
+    console.error('[barcode-image-decoder] tryDecode failed:', err);
     return null;
   }
 }
@@ -39,7 +40,8 @@ export async function decodeBarcodeFromImage(
   try {
     const reader = makeReader(formats);
     return await tryDecode(reader, url);
-  } catch {
+  } catch (err) {
+    console.error('[barcode-image-decoder] decodeBarcodeFromImage failed:', err);
     return null;
   } finally {
     URL.revokeObjectURL(url);
