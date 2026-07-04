@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useId, useRef, useState } from 'react';
+import { Camera, ScanLine, X, AlertCircle, Check, ExternalLink, RotateCcw, Loader2 } from 'lucide-react';
 import { getTranslations, type Locale } from '../i18n/utils';
 import { BarcodeScanner, DEFAULT_BARCODE_FORMATS } from '../lib/barcode-scanner';
 import { decodeBarcodeFromFrames, decodeBarcodeFromImage } from '../lib/barcode-image-decoder';
@@ -64,6 +65,12 @@ export function BarcodeScannerComponent({ locale = 'en' }: BarcodeScannerProps) 
         break;
       case 'NotFoundError':
         setError(t.barcodeScanErrorNoCamera!);
+        break;
+      case 'NotReadableError':
+        setError(t.qrScanErrorBusy!);
+        break;
+      case 'OverconstrainedError':
+        setError(t.qrScanErrorConstraints!);
         break;
       default:
         setError(t.barcodeScanErrorGeneric!);
@@ -158,8 +165,6 @@ export function BarcodeScannerComponent({ locale = 'en' }: BarcodeScannerProps) 
     }
   };
 
-  // Manual capture: 7 preprocessed frames, decode each one. Fallback when
-  // the live scanner isn't picking up the code.
   const captureAndDecode = async () => {
     const video = videoRef.current;
     if (!video || !video.videoWidth) return;
@@ -196,10 +201,14 @@ export function BarcodeScannerComponent({ locale = 'en' }: BarcodeScannerProps) 
 
   const handleImageSelected = async (file: File) => {
     setError(null);
-    const decoded = await decodeBarcodeFromImage(file);
-    if (decoded) {
-      finishWithResult(decoded.text, decoded.format);
-    } else {
+    try {
+      const decoded = await decodeBarcodeFromImage(file);
+      if (decoded) {
+        finishWithResult(decoded.text, decoded.format);
+      } else {
+        setError(t.barcodeScanErrorNoCode!);
+      }
+    } catch {
       setError(t.barcodeScanErrorGeneric!);
     }
   };
@@ -222,8 +231,7 @@ export function BarcodeScannerComponent({ locale = 'en' }: BarcodeScannerProps) 
   }, []);
 
   const copyResult = async () => {
-    if (!result) return;
-    if (!navigator.clipboard?.writeText) return;
+    if (!result || !navigator.clipboard?.writeText) return;
     await navigator.clipboard.writeText(result.text);
     setCopied(true);
     setTimeout(() => setCopied(false), 1500);
@@ -231,8 +239,8 @@ export function BarcodeScannerComponent({ locale = 'en' }: BarcodeScannerProps) 
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="border border-border bg-surface p-4 md:p-6">
-        <div className="relative w-full max-w-sm mx-auto aspect-2/1 bg-bg border border-border overflow-hidden flex items-center justify-center">
+      <div className="border border-border bg-surface p-4 md:p-6 rounded-md">
+        <div className="relative w-full max-w-md mx-auto aspect-[2/1] bg-bg border border-border overflow-hidden rounded-sm flex items-center justify-center">
           <video
             id={videoElementId}
             autoPlay
@@ -240,32 +248,72 @@ export function BarcodeScannerComponent({ locale = 'en' }: BarcodeScannerProps) 
             muted
             className="absolute inset-0 w-full h-full object-cover"
           />
+
+          {isStreaming && (
+            <>
+              <div
+                className="absolute inset-y-6 left-6 right-6 border-2 border-accent pointer-events-none rounded-sm"
+                aria-hidden="true"
+              />
+              <span
+                className="absolute left-1/2 -translate-x-1/2 top-2 font-mono text-[10px] uppercase tracking-[0.2em] text-accent bg-bg/80 px-2 py-1 rounded-sm animate-pulse-soft"
+                role="status"
+                aria-live="polite"
+              >
+                {t.barcodeScanSearching}
+              </span>
+            </>
+          )}
+
           {!isStreaming && !result && (
-            <p className="font-mono text-xs text-text-soft text-center px-4 relative z-10">
-              {t.barcodeScanPreview}
-            </p>
+            <div className="flex flex-col items-center justify-center gap-3 px-6 text-center">
+              <ScanLine className="size-10 text-text-soft/50" strokeWidth={1.25} aria-hidden="true" />
+              <p className="font-mono text-xs text-text-soft">{t.barcodeScanPreview}</p>
+            </div>
           )}
         </div>
 
         <div className="mt-4 flex flex-wrap gap-3">
           {isStreaming ? (
             <>
-              <Button onClick={captureAndDecode} disabled={isDecoding}>
-                {isDecoding ? '...' : t.barcodeScanRead!}
+              <Button
+                onClick={captureAndDecode}
+                loading={isDecoding}
+                iconLeft={isDecoding ? <Loader2 className="size-4 animate-spin" /> : undefined}
+                fullWidth
+                className="sm:w-auto"
+              >
+                {isDecoding ? t.barcodeScanReading! : t.barcodeScanRead!}
               </Button>
-              <Button variant="secondary" onClick={stopCamera}>
+              <Button
+                variant="secondary"
+                onClick={stopCamera}
+                iconLeft={<X className="size-4" />}
+                fullWidth
+                className="sm:w-auto"
+                disabled={isDecoding}
+              >
                 {t.barcodeScanStop}
               </Button>
             </>
           ) : (
-            <Button onClick={startCamera}>{t.barcodeScanStart}</Button>
+            <Button onClick={startCamera} iconLeft={<Camera className="size-4" />} fullWidth className="sm:w-auto">
+              {t.barcodeScanStart}
+            </Button>
           )}
         </div>
+
+        {isStreaming && !isDecoding && (
+          <p className="mt-3 text-xs text-text-soft text-center font-mono uppercase tracking-wider">
+            {t.barcodeScanFrame}
+          </p>
+        )}
       </div>
 
       {error && (
-        <div className="border border-accent/30 bg-accent/10 p-4">
-          <p className="text-sm text-text">{error}</p>
+        <div role="alert" className="flex items-start gap-3 border border-error/30 bg-error-soft p-4 rounded-md">
+          <AlertCircle className="size-4 text-error shrink-0 mt-0.5" aria-hidden="true" />
+          <p className="text-sm text-text leading-relaxed">{error}</p>
         </div>
       )}
 
@@ -273,12 +321,14 @@ export function BarcodeScannerComponent({ locale = 'en' }: BarcodeScannerProps) 
         title={t.barcodeScanManualTitle!}
         description={t.barcodeScanManualDescription!}
         uploadLabel={t.barcodeScanManualUpload!}
+        changeLabel={t.barcodeScanManualChange!}
+        clearLabel={t.barcodeScanManualClear!}
         pasteLabel={t.barcodeScanManualPaste!}
         placeholder={t.barcodeScanManualPastePlaceholder!}
         useLabel={t.barcodeScanManualUse!}
         onImageSelected={handleImageSelected}
         onTextSubmitted={handleTextSubmitted}
-        disabled={isDecoding}
+        disabled={isDecoding || isStreaming}
       />
 
       <Modal
@@ -289,7 +339,7 @@ export function BarcodeScannerComponent({ locale = 'en' }: BarcodeScannerProps) 
         maxWidth="lg"
       >
         <div className="flex flex-col gap-4">
-          <pre className="font-mono text-sm bg-bg border border-border p-4 overflow-x-auto whitespace-pre-wrap break-all max-h-64 overflow-y-auto">
+          <pre className="font-mono text-sm bg-bg border border-border p-4 overflow-x-auto whitespace-pre-wrap break-all max-h-64 overflow-y-auto rounded-sm">
             {result?.text}
           </pre>
 
@@ -298,7 +348,12 @@ export function BarcodeScannerComponent({ locale = 'en' }: BarcodeScannerProps) 
           </p>
 
           <div className="flex flex-col sm:flex-row gap-2">
-            <Button onClick={copyResult} className="flex-1 sm:flex-none">
+            <Button
+              onClick={copyResult}
+              fullWidth
+              className="sm:flex-none sm:w-auto"
+              iconLeft={copied ? <Check className="size-4" /> : undefined}
+            >
               {copied ? t.scanResultCopied : t.scanResultCopyValue}
             </Button>
             {result && isUrl(result.text) && (
@@ -306,12 +361,19 @@ export function BarcodeScannerComponent({ locale = 'en' }: BarcodeScannerProps) 
                 href={result.text}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="font-mono uppercase tracking-wider bg-secondary text-bg hover:bg-accent px-4 py-3 text-xs sm:text-sm transition-colors duration-200 inline-flex items-center justify-center"
+                className="inline-flex items-center justify-center gap-2 font-mono uppercase tracking-wider bg-secondary text-bg hover:bg-accent active:scale-[0.98] px-4 py-3 text-xs sm:text-sm min-h-11 rounded-md transition-all duration-150"
               >
                 {t.scanResultOpenLink}
+                <ExternalLink className="size-3.5" aria-hidden="true" />
               </a>
             )}
-            <Button variant="secondary" onClick={scanAgain} className="flex-1 sm:flex-none">
+            <Button
+              variant="secondary"
+              onClick={scanAgain}
+              fullWidth
+              className="sm:flex-none sm:w-auto"
+              iconLeft={<RotateCcw className="size-4" />}
+            >
               {t.scanResultScanAgain}
             </Button>
           </div>

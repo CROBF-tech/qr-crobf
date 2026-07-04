@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useId, useRef, useState } from 'react';
+import { Camera, ScanLine, X, AlertCircle, Check, ExternalLink, RotateCcw } from 'lucide-react';
 import { getTranslations, type Locale } from '../i18n/utils';
 import { QRScanner as QRScannerEngine } from '../lib/qr-scanner';
 import { decodeQRFromImage } from '../lib/qr-image-decoder';
@@ -20,10 +21,6 @@ function isUrl(text: string): boolean {
 export function QRScanner({ locale = 'en' }: QRScannerProps) {
   const t = getTranslations(locale);
   const id = useId();
-  // Single ref to the host element that html5-qrcode will own. We do NOT
-  // render any React children inside this element, so the library's DOM
-  // mutations (creating/moving its internal <video>) never conflict with
-  // React's reconciliation.
   const hostRef = useRef<HTMLDivElement | null>(null);
   const elementId = `qr-scanner-${id}`;
   const scannerRef = useRef<QRScannerEngine | null>(null);
@@ -96,9 +93,6 @@ export function QRScanner({ locale = 'en' }: QRScannerProps) {
         return;
       }
 
-      // Hand html5-qrcode a fresh, empty <div> it owns entirely. The host
-      // wrapper is just a layout box — no React children inside the div
-      // the library will mutate.
       const target = document.createElement('div');
       target.id = elementId;
       target.style.width = '100%';
@@ -136,10 +130,14 @@ export function QRScanner({ locale = 'en' }: QRScannerProps) {
 
   const handleImageSelected = async (file: File) => {
     setError(null);
-    const decoded = await decodeQRFromImage(file);
-    if (decoded) {
-      finishWithResult(decoded);
-    } else {
+    try {
+      const decoded = await decodeQRFromImage(file);
+      if (decoded) {
+        finishWithResult(decoded);
+      } else {
+        setError(t.qrScanErrorGeneric!);
+      }
+    } catch {
       setError(t.qrScanErrorGeneric!);
     }
   };
@@ -162,8 +160,7 @@ export function QRScanner({ locale = 'en' }: QRScannerProps) {
   }, []);
 
   const copyResult = async () => {
-    if (!result) return;
-    if (!navigator.clipboard?.writeText) return;
+    if (!result || !navigator.clipboard?.writeText) return;
     await navigator.clipboard.writeText(result);
     setCopied(true);
     setTimeout(() => setCopied(false), 1500);
@@ -171,32 +168,57 @@ export function QRScanner({ locale = 'en' }: QRScannerProps) {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="border border-border bg-surface p-4 md:p-6">
-        <div className="relative w-full max-w-sm mx-auto aspect-square bg-bg border border-border overflow-hidden">
+      <div className="border border-border bg-surface p-4 md:p-6 rounded-md">
+        <div className="relative w-full max-w-md mx-auto aspect-square bg-bg border border-border overflow-hidden rounded-sm">
           <div ref={hostRef} className="absolute inset-0" />
+
+          {isStreaming && (
+            <>
+              <div
+                className="absolute inset-8 border-2 border-accent pointer-events-none rounded-sm"
+                aria-hidden="true"
+              />
+              <span
+                className="absolute left-1/2 -translate-x-1/2 top-3 font-mono text-[10px] uppercase tracking-[0.2em] text-accent bg-bg/80 px-2 py-1 rounded-sm animate-pulse-soft"
+                role="status"
+                aria-live="polite"
+              >
+                {t.qrScanSearching}
+              </span>
+            </>
+          )}
+
           {!isStreaming && !result && (
-            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-              <p className="font-mono text-xs text-text-soft text-center px-4">
-                {t.qrScanPreview}
-              </p>
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 px-6 text-center">
+              <ScanLine className="size-10 text-text-soft/50" strokeWidth={1.25} aria-hidden="true" />
+              <p className="font-mono text-xs text-text-soft">{t.qrScanPreview}</p>
             </div>
           )}
         </div>
 
         <div className="mt-4 flex flex-wrap gap-3">
           {isStreaming ? (
-            <Button variant="secondary" onClick={stopCamera}>
+            <Button variant="secondary" onClick={stopCamera} iconLeft={<X className="size-4" />} fullWidth className="sm:w-auto">
               {t.qrScanStop}
             </Button>
           ) : (
-            <Button onClick={startCamera}>{t.qrScanStart}</Button>
+            <Button onClick={startCamera} iconLeft={<Camera className="size-4" />} fullWidth className="sm:w-auto">
+              {t.qrScanStart}
+            </Button>
           )}
         </div>
+
+        {isStreaming && (
+          <p className="mt-3 text-xs text-text-soft text-center font-mono uppercase tracking-wider">
+            {t.qrScanFrame}
+          </p>
+        )}
       </div>
 
       {error && (
-        <div className="border border-accent/30 bg-accent/10 p-4">
-          <p className="text-sm text-text">{error}</p>
+        <div role="alert" className="flex items-start gap-3 border border-error/30 bg-error-soft p-4 rounded-md">
+          <AlertCircle className="size-4 text-error shrink-0 mt-0.5" aria-hidden="true" />
+          <p className="text-sm text-text leading-relaxed">{error}</p>
         </div>
       )}
 
@@ -204,6 +226,8 @@ export function QRScanner({ locale = 'en' }: QRScannerProps) {
         title={t.qrScanManualTitle!}
         description={t.qrScanManualDescription!}
         uploadLabel={t.qrScanManualUpload!}
+        changeLabel={t.qrScanManualChange!}
+        clearLabel={t.qrScanManualClear!}
         pasteLabel={t.qrScanManualPaste!}
         placeholder={t.qrScanManualPastePlaceholder!}
         useLabel={t.qrScanManualUse!}
@@ -220,12 +244,17 @@ export function QRScanner({ locale = 'en' }: QRScannerProps) {
         maxWidth="lg"
       >
         <div className="flex flex-col gap-4">
-          <pre className="font-mono text-sm bg-bg border border-border p-4 overflow-x-auto whitespace-pre-wrap break-all max-h-64 overflow-y-auto">
+          <pre className="font-mono text-sm bg-bg border border-border p-4 overflow-x-auto whitespace-pre-wrap break-all max-h-64 overflow-y-auto rounded-sm">
             {result}
           </pre>
 
           <div className="flex flex-col sm:flex-row gap-2">
-            <Button onClick={copyResult} className="flex-1 sm:flex-none">
+            <Button
+              onClick={copyResult}
+              fullWidth
+              className="sm:flex-none sm:w-auto"
+              iconLeft={copied ? <Check className="size-4" /> : undefined}
+            >
               {copied ? t.scanResultCopied : t.scanResultCopyValue}
             </Button>
             {result && isUrl(result) && (
@@ -233,12 +262,19 @@ export function QRScanner({ locale = 'en' }: QRScannerProps) {
                 href={result}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="font-mono uppercase tracking-wider bg-secondary text-bg hover:bg-accent px-4 py-3 text-xs sm:text-sm transition-colors duration-200 inline-flex items-center justify-center"
+                className="inline-flex items-center justify-center gap-2 font-mono uppercase tracking-wider bg-secondary text-bg hover:bg-accent active:scale-[0.98] px-4 py-3 text-xs sm:text-sm min-h-11 rounded-md transition-all duration-150"
               >
                 {t.scanResultOpenLink}
+                <ExternalLink className="size-3.5" aria-hidden="true" />
               </a>
             )}
-            <Button variant="secondary" onClick={scanAgain} className="flex-1 sm:flex-none">
+            <Button
+              variant="secondary"
+              onClick={scanAgain}
+              fullWidth
+              className="sm:flex-none sm:w-auto"
+              iconLeft={<RotateCcw className="size-4" />}
+            >
               {t.scanResultScanAgain}
             </Button>
           </div>

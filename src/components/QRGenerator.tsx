@@ -2,7 +2,10 @@
 
 import { useEffect, useRef, useState } from 'react';
 import QRCodeStyling from 'qr-code-styling';
+import { Download, QrCode, Copy, Check } from 'lucide-react';
 import { getTranslations, type Locale } from '../i18n/utils';
+import { Button } from './ui/Button';
+import { Textarea } from './ui/Input';
 
 interface QRGeneratorProps {
   locale?: Locale;
@@ -13,6 +16,8 @@ export function QRGenerator({ locale = 'en' }: QRGeneratorProps) {
   const [text, setText] = useState('');
   const [submitted, setSubmitted] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [creating, setCreating] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   const containerRef = useRef<HTMLDivElement | null>(null);
   const qrRef = useRef<QRCodeStyling | null>(null);
@@ -37,93 +42,140 @@ export function QRGenerator({ locale = 'en' }: QRGeneratorProps) {
     qr.append(containerRef.current);
   }, [submitted]);
 
-  const onSubmit = (e: React.FormEvent) => {
+  const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const value = text.trim();
-    if (!value) return;
+    if (!value) {
+      setError(t.qrGenErrorEmpty!);
+      return;
+    }
+    setCreating(true);
+    setError(null);
+    await new Promise((r) => setTimeout(r, 80));
     try {
       setSubmitted(value);
     } catch {
       setError(t.qrGenError!);
+    } finally {
+      setCreating(false);
     }
   };
 
-  const onDownload = (extension: 'png' | 'svg') => {
+  const onDownload = (extension: 'png' | 'svg' | 'jpeg') => {
     qrRef.current?.download({ name: 'qr-code', extension });
   };
 
+  const onCopyText = async () => {
+    if (!navigator.clipboard?.writeText) return;
+    await navigator.clipboard.writeText(submitted);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1500);
+  };
+
+  const onCreateAnother = () => {
+    setSubmitted('');
+    setText('');
+    setError(null);
+  };
+
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-[1fr_auto] gap-6 lg:gap-8 items-start">
-      <form onSubmit={onSubmit} className="border border-border bg-surface p-4 md:p-6 flex flex-col gap-4">
-        <div>
-          <label
-            htmlFor="qr-input"
-            className="font-mono text-xs uppercase tracking-wider text-text-soft block mb-2"
-          >
-            {t.qrGenLabel}
-          </label>
-          <textarea
-            id="qr-input"
-            value={text}
-            onChange={(e) => setText(e.target.value)}
-            placeholder={t.qrGenPlaceholder}
-            rows={4}
-            className="w-full bg-bg border border-border focus:border-accent px-3 py-2 text-sm font-mono placeholder:text-text-soft/50 outline-none resize-y"
-          />
-          <p className="mt-2 text-xs text-text-soft">{t.qrGenHelper}</p>
-        </div>
+    <div className="grid grid-cols-1 lg:grid-cols-[1fr_auto] gap-4 lg:gap-6 items-start">
+      <form
+        onSubmit={onSubmit}
+        className="border border-border bg-surface p-4 md:p-6 rounded-md flex flex-col gap-5"
+        noValidate
+      >
+        <Textarea
+          label={t.qrGenLabel!}
+          value={text}
+          onChange={(e) => {
+            setText(e.target.value);
+            if (error) setError(null);
+          }}
+          placeholder={t.qrGenPlaceholder}
+          helperText={t.qrGenHelper}
+          error={error}
+          rows={4}
+          required
+        />
 
         <div className="flex flex-wrap gap-3">
-          <button
-            type="submit"
-            className="font-mono uppercase tracking-wider bg-text text-bg hover:bg-accent px-4 py-3 text-xs sm:text-sm transition-colors duration-200"
-          >
+          <Button type="submit" loading={creating}>
             {t.qrGenButton}
-          </button>
+          </Button>
           {submitted && (
-            <>
-              <button
-                type="button"
-                onClick={() => onDownload('png')}
-                className="font-mono uppercase tracking-wider bg-surface hover:bg-secondary hover:text-bg px-4 py-3 text-xs sm:text-sm transition-colors duration-200 border border-border"
-              >
-                {t.qrGenDownload} (PNG)
-              </button>
-              <button
-                type="button"
-                onClick={() => onDownload('svg')}
-                className="font-mono uppercase tracking-wider bg-surface hover:bg-secondary hover:text-bg px-4 py-3 text-xs sm:text-sm transition-colors duration-200 border border-border"
-              >
-                SVG
-              </button>
-            </>
+            <Button type="button" variant="secondary" onClick={onCreateAnother}>
+              {t.qrGenAnother}
+            </Button>
           )}
         </div>
 
-        {error && (
-          <div className="border border-accent/30 bg-accent/10 p-3">
-            <p className="text-sm text-text">{error}</p>
+        {submitted && (
+          <div
+            role="group"
+            aria-label={t.qrGenDownload}
+            className="flex flex-wrap gap-2 pt-3 border-t border-border"
+          >
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => onDownload('png')}
+              iconLeft={<Download className="size-3.5" />}
+            >
+              {t.qrGenDownloadPng}
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => onDownload('svg')}
+              iconLeft={<Download className="size-3.5" />}
+            >
+              {t.qrGenDownloadSvg}
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => onDownload('jpeg')}
+              iconLeft={<Download className="size-3.5" />}
+            >
+              {t.qrGenDownloadJpeg}
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={onCopyText}
+              iconLeft={copied ? <Check className="size-3.5" /> : <Copy className="size-3.5" />}
+            >
+              {t.qrGenCopyText}
+            </Button>
           </div>
         )}
       </form>
 
-      <div className="border border-border bg-surface p-4 md:p-6 flex flex-col items-center gap-3 min-w-[320px]">
+      <div className="border border-border bg-surface p-4 md:p-6 rounded-md flex flex-col items-center gap-3 w-full lg:w-auto">
         {submitted ? (
           <>
             <div
               ref={containerRef}
-              className="bg-white p-2 border border-border"
+              role="img"
               aria-label={t.qrGenAlt}
+              className="bg-white p-2 border border-border rounded-sm w-full max-w-xs"
             />
             <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-text-soft">
               {t.qrGenAlt}
             </p>
           </>
         ) : (
-          <div className="w-[320px] h-[320px] flex items-center justify-center border border-dashed border-border bg-bg">
-            <p className="font-mono text-xs text-text-soft text-center px-4">
-              {t.qrGenEmpty}
-            </p>
+          <div className="w-full max-w-xs aspect-square flex flex-col items-center justify-center gap-3 border border-dashed border-border bg-bg rounded-md text-center px-4">
+            <QrCode className="size-10 text-text-soft/50" strokeWidth={1.25} aria-hidden="true" />
+            <div>
+              <p className="font-display text-sm font-medium mb-1">{t.qrGenEmpty}</p>
+              <p className="text-xs text-text-soft">{t.qrGenEmptyHint}</p>
+            </div>
           </div>
         )}
       </div>

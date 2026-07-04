@@ -2,7 +2,10 @@
 
 import { useEffect, useRef, useState } from 'react';
 import JsBarcode from 'jsbarcode';
+import { Barcode, Download, Copy, Check } from 'lucide-react';
 import { getTranslations, type Locale } from '../i18n/utils';
+import { Button } from './ui/Button';
+import { Input } from './ui/Input';
 
 interface BarcodeGeneratorProps {
   locale?: Locale;
@@ -26,6 +29,8 @@ export function BarcodeGenerator({ locale = 'en' }: BarcodeGeneratorProps) {
   const [format, setFormat] = useState<(typeof FORMATS)[number]['value']>('CODE128');
   const [submitted, setSubmitted] = useState<{ value: string; format: string } | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [creating, setCreating] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   const svgRef = useRef<SVGSVGElement | null>(null);
 
@@ -43,16 +48,23 @@ export function BarcodeGenerator({ locale = 'en' }: BarcodeGeneratorProps) {
         fontSize: 16,
         font: 'JetBrains Mono, monospace',
       });
-    } catch (err) {
+    } catch {
       setError(t.barcodeGenError!);
     }
   }, [submitted, t.barcodeGenError]);
 
-  const onSubmit = (e: React.FormEvent) => {
+  const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const value = text.trim();
-    if (!value) return;
+    if (!value) {
+      setError(t.barcodeGenErrorEmpty!);
+      return;
+    }
+    setCreating(true);
+    setError(null);
+    await new Promise((r) => setTimeout(r, 80));
     setSubmitted({ value, format });
+    setCreating(false);
   };
 
   const onDownload = () => {
@@ -70,30 +82,43 @@ export function BarcodeGenerator({ locale = 'en' }: BarcodeGeneratorProps) {
     URL.revokeObjectURL(url);
   };
 
+  const onCopyValue = async () => {
+    if (!submitted || !navigator.clipboard?.writeText) return;
+    await navigator.clipboard.writeText(submitted.value);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1500);
+  };
+
+  const onCreateAnother = () => {
+    setSubmitted(null);
+    setText('');
+    setError(null);
+  };
+
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-[1fr_auto] gap-6 lg:gap-8 items-start">
-      <form onSubmit={onSubmit} className="border border-border bg-surface p-4 md:p-6 flex flex-col gap-4">
-        <div>
-          <label
-            htmlFor="barcode-input"
-            className="font-mono text-xs uppercase tracking-wider text-text-soft block mb-2"
-          >
-            {t.barcodeGenLabel}
-          </label>
-          <input
-            id="barcode-input"
-            type="text"
-            value={text}
-            onChange={(e) => setText(e.target.value)}
-            placeholder={t.barcodeGenPlaceholder}
-            className="w-full bg-bg border border-border focus:border-accent px-3 py-2 text-sm font-mono placeholder:text-text-soft/50 outline-none"
-          />
-        </div>
+    <div className="grid grid-cols-1 lg:grid-cols-[1fr_auto] gap-4 lg:gap-6 items-start">
+      <form
+        onSubmit={onSubmit}
+        className="border border-border bg-surface p-4 md:p-6 rounded-md flex flex-col gap-5"
+        noValidate
+      >
+        <Input
+          label={t.barcodeGenLabel!}
+          value={text}
+          onChange={(e) => {
+            setText(e.target.value);
+            if (error) setError(null);
+          }}
+          placeholder={t.barcodeGenPlaceholder}
+          helperText={t.barcodeGenHelper}
+          error={error}
+          required
+        />
 
         <div>
           <label
             htmlFor="barcode-format"
-            className="font-mono text-xs uppercase tracking-wider text-text-soft block mb-2"
+            className="block font-mono text-[11px] uppercase tracking-wider text-text-soft mb-1.5"
           >
             {t.barcodeGenFormatLabel}
           </label>
@@ -101,7 +126,7 @@ export function BarcodeGenerator({ locale = 'en' }: BarcodeGeneratorProps) {
             id="barcode-format"
             value={format}
             onChange={(e) => setFormat(e.target.value as (typeof FORMATS)[number]['value'])}
-            className="w-full bg-bg border border-border focus:border-accent px-3 py-2 text-sm font-mono outline-none"
+            className="w-full bg-bg border border-border rounded-md px-3 py-2.5 text-base text-text outline-none transition-colors duration-150 focus:border-accent focus:ring-2 focus:ring-accent/20"
           >
             {FORMATS.map((f) => (
               <option key={f.value} value={f.value}>
@@ -109,44 +134,65 @@ export function BarcodeGenerator({ locale = 'en' }: BarcodeGeneratorProps) {
               </option>
             ))}
           </select>
-          <p className="mt-2 text-xs text-text-soft">{t.barcodeGenFormatHelp}</p>
+          <p className="mt-1.5 text-xs text-text-soft">{t.barcodeGenFormatHelp}</p>
         </div>
 
         <div className="flex flex-wrap gap-3">
-          <button
-            type="submit"
-            className="font-mono uppercase tracking-wider bg-text text-bg hover:bg-accent px-4 py-3 text-xs sm:text-sm transition-colors duration-200"
-          >
+          <Button type="submit" loading={creating}>
             {t.barcodeGenButton}
-          </button>
+          </Button>
           {submitted && (
-            <button
-              type="button"
-              onClick={onDownload}
-              className="font-mono uppercase tracking-wider bg-surface hover:bg-secondary hover:text-bg px-4 py-3 text-xs sm:text-sm transition-colors duration-200 border border-border"
-            >
-              {t.barcodeGenDownload}
-            </button>
+            <Button type="button" variant="secondary" onClick={onCreateAnother}>
+              {t.barcodeGenAnother}
+            </Button>
           )}
         </div>
 
-        {error && (
-          <div className="border border-accent/30 bg-accent/10 p-3">
-            <p className="text-sm text-text">{error}</p>
+        {submitted && (
+          <div className="flex flex-wrap gap-2 pt-3 border-t border-border">
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={onDownload}
+              iconLeft={<Download className="size-3.5" />}
+            >
+              {t.barcodeGenDownload}
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={onCopyValue}
+              iconLeft={copied ? <Check className="size-3.5" /> : <Copy className="size-3.5" />}
+            >
+              {t.barcodeGenCopyText}
+            </Button>
           </div>
         )}
       </form>
 
-      <div className="border border-border bg-surface p-4 md:p-6 flex flex-col items-center gap-3 min-w-[320px]">
+      <div className="border border-border bg-surface p-4 md:p-6 rounded-md flex flex-col items-center gap-3 w-full lg:w-auto">
         {submitted ? (
-          <div className="bg-white p-3 border border-border w-full flex items-center justify-center min-h-[140px]">
-            <svg ref={svgRef} />
-          </div>
-        ) : (
-          <div className="w-[320px] h-[160px] flex items-center justify-center border border-dashed border-border bg-bg">
-            <p className="font-mono text-xs text-text-soft text-center px-4">
-              {t.barcodeGenEmpty}
+          <>
+            <div
+              role="img"
+              aria-label={`${t.barcodeGenFormat} ${format}`}
+              className="bg-white p-3 border border-border rounded-sm w-full max-w-xs flex items-center justify-center min-h-[140px]"
+            >
+              <svg ref={svgRef} className="w-full h-auto" />
+            </div>
+            <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-text-soft">
+              {t.barcodeGenFormat}: {format}
             </p>
+          </>
+        ) : (
+          <div className="w-full max-w-xs aspect-[2/1] flex flex-col items-center justify-center gap-3 border border-dashed border-border bg-bg rounded-md text-center px-4">
+            <Barcode className="size-10 text-text-soft/50" strokeWidth={1.25} aria-hidden="true" />
+            <div>
+              <p className="font-display text-sm font-medium mb-1">{t.barcodeGenEmpty}</p>
+              <p className="text-xs text-text-soft">{t.barcodeGenEmptyHint}</p>
+            </div>
           </div>
         )}
       </div>
