@@ -1,0 +1,21 @@
+---
+interface Props {
+  class?: string;
+  as?: 'div' | 'section' | 'article' | 'header' | 'footer' | 'main' | 'nav';
+  size?: 'sm' | 'md' | 'lg' | 'xl';
+}
+
+const sizeMap: Record<NonNullable<Props['size']>, string> = {
+  sm: 'max-w-3xl',
+  md: 'max-w-5xl',
+  lg: 'max-w-6xl',
+  xl: 'max-w-7xl',
+};
+
+const { class: className = '', as: Tag = 'div', size = 'lg' } = Astro.props;
+const maxClass = sizeMap[size];
+---
+
+<Tag class:list={[`mx-auto w-full px-4 md:px-6 lg:px-8 ${maxClass} ${className}`]}>
+  <slot />
+</Tag>

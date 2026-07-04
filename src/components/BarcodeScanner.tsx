@@ -286,7 +286,7 @@ export function BarcodeScannerComponent({ locale = 'en' }: BarcodeScannerProps) 
         onClose={closeModal}
         eyebrow={t.scanResultModalEyebrow}
         title={t.scanResultModalTitle!}
-        maxWidth="max-w-lg"
+        maxWidth="lg"
       >
         <div className="flex flex-col gap-4">
           <pre className="font-mono text-sm bg-bg border border-border p-4 overflow-x-auto whitespace-pre-wrap break-all max-h-64 overflow-y-auto">

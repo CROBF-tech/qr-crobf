@@ -3,8 +3,6 @@ import { getLocaleFromPath } from '../../i18n/utils';
 import type { Locale } from '../../i18n/utils';
 
 const locale = getLocaleFromPath(Astro.url.pathname);
-const currentLabel = locale === 'en' ? 'English' : 'Español';
-const altLabel = locale === 'en' ? 'Español' : 'English';
 const altLocale: Locale = locale === 'en' ? 'es' : 'en';
 const currentPath = Astro.url.pathname;
 
@@ -17,53 +15,14 @@ function swapLocale(path: string, current: Locale, target: Locale): string {
 }
 
 const altPath = swapLocale(currentPath, locale, altLocale);
+const altLabel = altLocale === 'en' ? 'English' : 'Español';
 ---
 
-<div id="language-picker" class="relative">
-  <button
-    id="lang-btn"
-    class="font-mono text-xs uppercase tracking-wider text-text-soft hover:text-text flex items-center gap-1.5 px-2 py-1"
-    aria-label="Change language"
-  >
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <circle cx="12" cy="12" r="10"/>
-      <line x1="2" y1="12" x2="22" y2="12"/>
-      <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
-    </svg>
-    {currentLabel}
-  </button>
-  <div
-    id="lang-menu"
-    class="absolute right-0 top-full mt-1 bg-surface border border-border shadow-lg opacity-0 scale-95 pointer-events-none transition-all duration-150 z-50"
-  >
-    <a
-      href={altPath}
-      class="block px-4 py-2 font-mono text-xs uppercase tracking-wider text-text-soft hover:text-text hover:bg-bg whitespace-nowrap"
-    >
-      {altLabel}
-    </a>
-  </div>
-</div>
-
-<script>
-  const btn = document.getElementById('lang-btn');
-  const menu = document.getElementById('lang-menu');
-  let open = false;
-
-  btn?.addEventListener('click', () => {
-    open = !open;
-    if (open) {
-      menu?.classList.remove('opacity-0', 'scale-95', 'pointer-events-none');
-    } else {
-      menu?.classList.add('opacity-0', 'scale-95', 'pointer-events-none');
-    }
-  });
-
-  document.addEventListener('click', (e) => {
-    const target = e.target as HTMLElement;
-    if (open && !document.getElementById('language-picker')?.contains(target)) {
-      open = false;
-      menu?.classList.add('opacity-0', 'scale-95', 'pointer-events-none');
-    }
-  });
-</script>
+<a
+  href={altPath}
+  hreflang={altLocale}
+  aria-label={`Switch language to ${altLabel}`}
+  class="font-mono text-xs uppercase tracking-wider text-text-soft hover:text-text px-2 py-1 rounded-sm transition-colors"
+>
+  {altLabel}
+</a>

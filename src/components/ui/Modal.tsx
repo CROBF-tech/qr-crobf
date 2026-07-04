@@ -1,124 +1,152 @@
-'use client';
-
-import { useCallback, useEffect, useId, useRef, type ReactNode } from 'react';
-import { createPortal } from 'react-dom';
-import { useState } from 'react';
+import { useEffect, useRef, useState, useCallback, type ReactNode } from 'react';
+import { X } from 'lucide-react';
 
 interface ModalProps {
   open: boolean;
   onClose: () => void;
-  title: string;
   eyebrow?: string;
+  title: string;
+  description?: string;
   children: ReactNode;
-  maxWidth?: string;
+  maxWidth?: 'sm' | 'md' | 'lg' | 'xl';
 }
 
-export function Modal({ open, onClose, title, eyebrow, children, maxWidth = 'max-w-md' }: ModalProps) {
-  const titleId = useId();
+const maxWidthMap = {
+  sm: 'max-w-sm',
+  md: 'max-w-md',
+  lg: 'max-w-lg',
+  xl: 'max-w-2xl',
+};
+
+const FOCUSABLE =
+  'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
+export function Modal({
+  open,
+  onClose,
+  eyebrow,
+  title,
+  description,
+  children,
+  maxWidth = 'md',
+}: ModalProps) {
   const panelRef = useRef<HTMLDivElement | null>(null);
+  const closeBtnRef = useRef<HTMLButtonElement | null>(null);
   const previousFocusRef = useRef<HTMLElement | null>(null);
+  const [visible, setVisible] = useState(false);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  useEffect(() => {
-    if (!open) return;
-    previousFocusRef.current = document.activeElement as HTMLElement | null;
-    const panel = panelRef.current;
-    if (panel) {
-      const focusable = panel.querySelector<HTMLElement>(
-        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
-      );
-      if (focusable) focusable.focus();
-      else panel.focus();
+    if (open) {
+      setMounted(true);
+      requestAnimationFrame(() => setVisible(true));
+      previousFocusRef.current = document.activeElement as HTMLElement | null;
+    } else if (mounted) {
+      setVisible(false);
+      const t = setTimeout(() => setMounted(false), 220);
+      return () => clearTimeout(t);
     }
-    return () => {
-      previousFocusRef.current?.focus?.();
-    };
-  }, [open]);
+  }, [open, mounted]);
 
   useEffect(() => {
-    if (!open) return;
-    const onKey = (e: KeyboardEvent) => {
+    if (!mounted) return;
+    const handleKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         e.preventDefault();
         onClose();
+        return;
+      }
+      if (e.key === 'Tab' && panelRef.current) {
+        const nodes = panelRef.current.querySelectorAll<HTMLElement>(FOCUSABLE);
+        if (nodes.length === 0) return;
+        const first = nodes[0]!;
+        const last = nodes[nodes.length - 1]!;
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
       }
     };
-    document.addEventListener('keydown', onKey);
-    return () => document.removeEventListener('keydown', onKey);
-  }, [open, onClose]);
+    document.addEventListener('keydown', handleKey);
+    return () => document.removeEventListener('keydown', handleKey);
+  }, [mounted, onClose]);
 
   useEffect(() => {
-    if (!open) return;
-    const prev = document.body.style.overflow;
+    if (!mounted) return;
+    const original = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
     return () => {
-      document.body.style.overflow = prev;
+      document.body.style.overflow = original;
     };
-  }, [open]);
+  }, [mounted]);
 
-  const onBackdropClick = useCallback(
-    (e: React.MouseEvent<HTMLDivElement>) => {
-      if (e.target === e.currentTarget) onClose();
-    },
-    [onClose]
-  );
+  useEffect(() => {
+    if (visible) {
+      closeBtnRef.current?.focus();
+    } else if (!visible && previousFocusRef.current) {
+      previousFocusRef.current.focus();
+    }
+  }, [visible]);
 
-  if (!mounted || !open) return null;
+  const onBackdropClick = useCallback(() => {
+    onClose();
+  }, [onClose]);
 
-  return createPortal(
+  if (!mounted) return null;
+
+  return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-text/70 animate-fade-in"
+      className={`fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-overlay transition-opacity duration-200 ${visible ? 'opacity-100' : 'opacity-0'}`}
       onClick={onBackdropClick}
+      role="presentation"
     >
       <div
         ref={panelRef}
         role="dialog"
         aria-modal="true"
-        aria-labelledby={titleId}
-        tabIndex={-1}
-        className={`relative w-full ${maxWidth} border border-border bg-surface shadow-2xl animate-modal-in focus:outline-none`}
+        aria-labelledby="modal-title"
+        aria-describedby={description ? 'modal-desc' : undefined}
+        onClick={(e) => e.stopPropagation()}
+        className={`
+          relative w-full ${maxWidthMap[maxWidth]}
+          bg-surface-elevated text-text
+          border border-border
+          rounded-t-xl sm:rounded-xl
+          shadow-lg
+          max-h-[90dvh] overflow-y-auto
+          ${visible ? 'animate-sheet-in sm:animate-modal-in' : 'opacity-0'}
+        `}
       >
         <button
+          ref={closeBtnRef}
           type="button"
           onClick={onClose}
           aria-label="Close"
-          className="absolute top-3 right-3 w-9 h-9 flex items-center justify-center text-text-soft hover:text-text hover:bg-bg transition-colors"
+          className="absolute top-3 right-3 p-2 text-text-soft hover:text-text rounded-sm transition-colors"
         >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="18"
-            height="18"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="square"
-            strokeLinejoin="miter"
-            aria-hidden="true"
-          >
-            <line x1="6" y1="6" x2="18" y2="18" />
-            <line x1="18" y1="6" x2="6" y2="18" />
-          </svg>
+          <X className="size-5" aria-hidden="true" />
         </button>
 
-        <div className="p-5 md:p-6 border-b border-border">
+        <div className="p-6 sm:p-8">
           {eyebrow && (
-            <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-accent mb-2">
+            <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-accent mb-2">
               {eyebrow}
-            </div>
+            </p>
           )}
-          <h2 id={titleId} className="font-display text-xl md:text-2xl font-medium leading-tight pr-10">
+          <h2 id="modal-title" className="font-display text-2xl font-medium mb-2">
             {title}
           </h2>
+          {description && (
+            <p id="modal-desc" className="text-sm text-text-soft mb-4">
+              {description}
+            </p>
+          )}
+          <div>{children}</div>
         </div>
-
-        <div className="p-5 md:p-6">{children}</div>
       </div>
-    </div>,
-    document.body
+    </div>
   );
 }
